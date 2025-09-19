@@ -1,0 +1,693 @@
+﻿@{
+    ViewBag.Title = "PRODUCTION SCHEDULE (PIVOT)";
+    Layout = "~/Views/Shared/_Layout.cshtml"; 
+}
+<style>
+    .toolbar {
+        display: grid;
+        grid-template-columns: 1fr auto auto auto auto;
+        gap: 12px;
+        align-items: center;
+        margin: 8px 0 16px;
+    }
+
+        .toolbar .title {
+            font-weight: 700;
+            font-size: 20px;
+            letter-spacing: .3px;
+        }
+
+        .toolbar .group {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+    .pivot-layout {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 16px;
+        overflow: hidden;
+    }
+
+    #pivotgrid {
+        height: 100%;
+    }
+
+    .k-pivot-configurator {
+        height: 100%;
+    }
+
+    .k-pivotgrid-content {
+        overflow: auto;
+    }
+
+    #yearDDL + .k-dropdown {
+        width: 65px !important;
+    }
+
+    .toolbar-container {
+        display: flex;
+        justify-content: flex-end; 
+        align-items: center;
+        gap: 8px; 
+    }
+
+    .toolbar-container .group {
+        display: flex;
+        align-items: center;
+    }
+    .radio-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 4px; 
+            cursor: pointer;
+        }
+
+        .radio-group input[type="radio"] {
+            margin: 0;
+        }
+
+    .toolbar-container {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px
+    }
+
+        .toolbar-container .group {
+            flex: 0 0 auto;
+            overflow: visible;
+            display: flex;
+            align-items: center
+        }
+
+ 
+    #yearDDL + .k-dropdownlist,
+    #periodDDL + .k-dropdownlist,
+    #versionDDL + .k-dropdowntree {
+        border-radius: 9999px !important;
+        border: 1px solid #C9CDD4 !important;
+        background: #fff !important;
+        box-shadow: none !important;
+        height: 34px; 
+    }
+
+
+        #yearDDL + .k-dropdownlist .k-input,
+        #periodDDL + .k-dropdownlist .k-input,
+        #versionDDL + .k-dropdowntree .k-input {
+            min-height: 34px;
+            height: 34px;
+            align-items: center
+        }
+
+      
+        #yearDDL + .k-dropdownlist .k-input-prefix,
+        #periodDDL + .k-dropdownlist .k-input-prefix,
+        #versionDDL + .k-dropdowntree .k-input-prefix {
+            margin-left: 8px;
+            opacity: .9
+        }
+
+        #yearDDL + .k-dropdownlist .k-input-suffix,
+        #periodDDL + .k-dropdownlist .k-input-suffix,
+        #versionDDL + .k-dropdowntree .k-input-suffix {
+            margin-right: 6px
+        }
+
+    
+        #yearDDL + .k-dropdownlist .k-input-inner,
+        #periodDDL + .k-dropdownlist .k-input-inner,
+        #versionDDL + .k-dropdowntree .k-input-inner {
+            padding-left: 28px
+        }
+
+        #versionDDL + .k-dropdowntree .k-input-values,
+        #versionDDL + .k-dropdowntree .k-chip-list {
+            display: flex;
+            flex-wrap: nowrap !important; 
+            white-space: nowrap;
+            align-items: center;
+            gap: 4px;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+
+        #versionDDL + .k-dropdowntree .k-chip {
+            flex: 0 0 auto;
+        }
+
+  
+        #versionDDL + .k-dropdowntree,
+        #versionDDL + .k-dropdowntree .k-input {
+            height: 34px;
+            min-height: 34px;
+            align-items: center;
+        }
+
+    #versionDDL + .k-dropdowntree {
+        min-width: 180px
+    }
+
+</style>
+
+<div class="toolbar-container">
+    <div class="group">
+        <input id="yearDDL" />
+    </div>
+    <div class="group">
+       <input id="versionDDL" />
+    </div>
+    <div class="group">
+        <input id="periodDDL" />
+    </div>
+    <div class="radio-group">
+        <label>
+            <input type="radio" name="mode" value="Fleet" checked>
+            Fleet
+        </label>
+        <label>
+            <input type="radio" name="mode" value="Process">
+            Process
+        </label>
+    </div>
+    <div class="group">
+        <button id="applyBtn" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-primary">Apply</button>
+    </div>
+</div>
+
+<div class="group" style="margin-bottom:12px">
+    <button id="exportExcel" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-primary">
+        <span class="k-icon k-i-excel"></span> Export to Excel
+    </button>
+</div>
+
+<div id="pivotLayout" class="pivot-layout" style="height: calc(100vh - 180px); min-height: 420px;">
+    <div id="configurator"></div>
+    <div id="pivotgrid"></div>
+</div>
+
+<script>
+$(document).ready(function () {
+   
+    if (typeof getBasicUrl !== "function") { window.getBasicUrl = () => ""; }
+
+    // --- Widgets ---
+    const ui = { size:"small", rounded:"medium", fillMode:"outline" };
+
+
+    function addPrefixIcon(widget, iconClass){
+        const $wrap = widget.wrapper;
+        const $inner = $wrap.find(".k-input-inner");
+        if(!$wrap.find(".k-input-prefix").length && $inner.length){
+            $('<span class="k-input-prefix"></span>')
+            .insertBefore($inner)
+            .append(`<span class="k-svg-icon ${iconClass}"></span>`);
+        }
+    }
+
+    /* === YEAR (DropDownList) === */
+    const yearDDL = $("#yearDDL").kendoDropDownList({
+        ...ui,
+        optionLabel:"Year",
+        dataTextField:"year",
+        dataValueField:"year",
+        dataSource:{
+            transport:{ read:{ url: '@Url.Action("GetYearList", "ProductionSchedulePivot")', dataType:"json" } },
+            schema:{ data:"data", parse:resp=>{ resp.data=(resp.data||[]).map(y=>({year:y})); return resp; } }
+        },
+        value:new Date().getFullYear()
+    }).data("kendoDropDownList");
+    yearDDL.wrapper.css({ width:"100px" });
+
+    /* === VERSION (DropDownTree) === */
+    const versionDDT = $("#versionDDL").kendoDropDownTree({
+      ...ui,
+      placeholder:"Version",
+      checkboxes:true,
+      autoClose:false,
+      valuePrimitive:true,
+      tagMode:"multiple",
+      dataTextField:"mbr",
+      dataValueField:"mbr",
+      filter:"contains",
+      clearButton:true,
+      height:320,
+      popup:{ appendTo:"body", collision:"fit" },
+      dataSource: new kendo.data.HierarchicalDataSource({
+        transport:{
+          read:{
+            url:'@Url.Action("GetMbrVersion", "ProductionSchedulePivot")',
+            dataType:"json",
+            data:()=>({ year: $("#yearDDL").data("kendoDropDownList").value() })
+          }
+        },
+        schema:{
+          data:"data",
+          parse: resp => { resp.data = (resp.data || []).map(x => ({ mbr:x })); return resp; },
+          model:{ id:"mbr", hasChildren:false }
+        }
+      }),
+      dataBound: function (e) {
+
+        if (e.node) return; 
+
+        const roots = this.dataSource.view();
+        if (!roots.length) return;
+
+        const lastVal = roots[roots.length - 1][this.options.dataValueField];
+
+        this.value([]);
+
+        this.value([lastVal]);
+        this.trigger("change");
+        const p = buildParams();
+        fetchAndBind(p);
+      }
+    }).data("kendoDropDownTree");
+    addPrefixIcon(versionDDT, "k-svg-i-list-unordered");
+
+    function fitOneRow() {
+        const $w = versionDDT.wrapper;                                 
+        const $row = $w.find(".k-input-values, .k-chip-list").first(); 
+        const $pref = $w.find(".k-input-prefix");
+        const $suf  = $w.find(".k-input-suffix");
+        if (!$w.length || !$row.length) return;
+
+
+        $w.css({ width: "auto" });
+
+        const rowW  = Math.ceil($row[0].scrollWidth || 0);
+        const prefW = $pref.outerWidth(true) || 0;
+        const sufW  = $suf.outerWidth(true)  || 0;
+        const extra = 16;
+
+ 
+        const container = $w.closest(".toolbar-container")[0];
+        const maxW = (container ? container.clientWidth : Math.max(document.documentElement.clientWidth, window.innerWidth || 0)) - 24;
+
+        const finalW = Math.min(Math.max(180, rowW + prefW + sufW + extra), maxW);
+        $w.css("width", finalW + "px");
+    }
+
+
+    fitOneRow();
+    versionDDT.bind("change", () => setTimeout(fitOneRow, 0));
+    versionDDT.bind("close",  () => setTimeout(fitOneRow, 0));
+
+
+    const chipsHost = versionDDT.wrapper.find(".k-input-values, .k-chip-list")[0];
+    if (chipsHost) new MutationObserver(() => fitOneRow())
+      .observe(chipsHost, { childList: true, subtree: true });
+     
+      /* === PERIOD (DropDownList) === */
+    const periodDDL = $("#periodDDL").kendoDropDownList({
+        ...ui,
+        optionLabel:"Period",
+        dataSource:[
+            { text:"Yearly",  value:"yearly"  },
+            { text:"Monthly", value:"monthly" },
+            { text:"Daily",   value:"daily"   }
+        ],
+        dataTextField:"text",
+        dataValueField:"value",
+        value:"monthly"
+    }).data("kendoDropDownList");
+    periodDDL.wrapper.css({ width:"140px" });
+    addPrefixIcon(periodDDL, "k-svg-i-calendar");
+
+
+    yearDDL.bind("change", function () {
+        versionDDT.value([]);
+        versionDDT.dataSource.read();
+    });
+
+
+   /* === Pivot === */
+    const GET_URL = '@Url.Action("GetPivotData", "ProductionSchedulePivot")';
+    function buildParams() {
+        const year   = $("#yearDDL").data("kendoDropDownList")?.value();
+        const period = $("#periodDDL").data("kendoDropDownList")?.value();
+        const mode   = ($("input[name=mode]:checked").val() || "Fleet").trim();
+        const versions = ($("#versionDDL").data("kendoDropDownTree")?.value() || [])
+            .map(v => (v ?? "").toString().trim())
+            .filter(Boolean)
+            .join(",");
+        return { year: year, tipeData: mode, periode: period, mbrVersion: versions };
+    }
+
+    function requiredOK(p) {
+        if (!p.periode)    { kendo.alert("Please choose Period."); return false; }
+        if (!p.year)       { kendo.alert("Please choose Year.");   return false; }
+        if (!p.mbrVersion) { kendo.alert("Please choose Version(s)."); return false; }
+        return true;
+    }
+
+    const schemaModel = {
+        fields: {
+            Version:   { type: "string" },
+            Jobsite:   { type: "string" },
+            Area:      { type: "string" },
+            Pit:       { type: "string" },
+            Period:    { type: "string" },
+            SettingId: { type: "string" },
+            Fleet:     { type: "string" },
+            Process:   { type: "string" },
+            Parameter: { type: "string" },
+            Value:     { type: "number" }
+        }
+    };
+    const cube = {
+        dimensions: {
+        "Version":   { dataMember: "Version", caption: "Version" },
+        "Jobsite":   { dataMember: "Jobsite" },
+        "Area":      { dataMember: "Area" },
+        "Pit":       { dataMember: "Pit" },
+        "Period":    { dataMember: "Period", caption: "Period" },
+        "SettingId": { dataMember: "SettingId", caption: "Setting ID" },
+        "Fleet":     { dataMember: "Fleet", caption: "Fleet" },
+        "Process":   { dataMember: "Process" },
+
+        "Parameter": {
+            caption: "Parameter",
+            hierarchies: [{
+            name: "By Parameter",
+            levels: [{
+                name: "Parameter",
+                caption: "Parameter",
+                field: "Parameter"
+            }]
+            }]
+        }
+        },
+
+        measures: {
+        "Value": { field: "Value", aggregate: "sum", format: "{0:n2}" }
+        }
+    };
+
+    function freshCube() {
+      return kendo.deepExtend({}, cube);
+    }
+
+    const DEFAULT_AXES = {
+        columns:  [{ name: "Version",   expand: true }],
+        rows:     [{ name: "Parameter", expand: true }],
+        measures: ["Value"]
+    };
+
+    let ds   = makeDs([]);
+    let cfg  = $("#configurator").kendoPivotConfiguratorV2({
+        dataSource: ds,
+        filterable: true,
+        height: 570,
+        updateOnApply: false,
+        autoBind: true
+    }).data("kendoPivotConfiguratorV2");
+
+    let pg = $("#pivotgrid").kendoPivotGridV2({
+        dataSource: ds,
+        height: 570,
+        columnWidth: 120,
+        filterable: true,
+        columnTotals: false,
+        rowTotals: false,
+        dataBound: function(e) {
+            const $el = this.element;
+            // Hide last row (grand total) in values & row-headers panes
+            $el.find(".k-pivotgrid-values .k-pivotgrid-tbody tr:last-child").hide();
+            $el.find(".k-pivotgrid-row-headers .k-pivotgrid-tbody tr:last-child").hide();
+
+            // Hide last column (grand total) in values & column-headers panes
+            $el.find(".k-pivotgrid-values .k-pivotgrid-tbody tr").each(function () {
+              $(this).find("td:last-child").hide();
+            });
+            $el.find(".k-pivotgrid-col-headers .k-pivotgrid-tbody tr").each(function () {
+              $(this).find("th:last-child").hide();
+            });
+        }
+    }).data("kendoPivotGridV2");
+
+    let lastLayout = { columns: [], rows: [], measures: [] };
+
+    function captureFrom(dsLike){
+        const o = dsLike?.options || {};
+        lastLayout = {
+        columns:  kendo.deepExtend([], o.columns  || []),
+        rows:     kendo.deepExtend([], o.rows     || []),
+        measures: kendo.deepExtend([], o.measures || [])
+        };
+        // debug:
+        console.log("captured layout:", lastLayout);
+    }
+
+    captureFrom(ds);
+
+    if (cfg?.dataSource) {
+        cfg.dataSource.bind("change", function(e){
+        if (!e.field || e.field === "columns" || e.field === "rows" || e.field === "measures") {
+            captureFrom(this);
+        }
+        });
+    }
+
+
+    function makeDs(data) {
+        return new kendo.data.PivotDataSourceV2({
+            data: data || [],
+            schema: { model: schemaModel, cube: freshCube()  },
+            columns:  kendo.deepExtend([], DEFAULT_AXES.columns),
+            rows:     kendo.deepExtend([], DEFAULT_AXES.rows),
+            measures: kendo.deepExtend([], DEFAULT_AXES.measures),
+            filter :null
+        });
+    }
+
+    function resetPivotSettings() {
+      const $old = $("#configurator");
+      const $new = $("<div id='configurator'></div>");
+      $old.replaceWith($new);
+
+      const freshDs = makeDs([]);
+
+      const cfg = $new.kendoPivotConfiguratorV2({
+        dataSource: freshDs,
+        filterable: true,
+        height: 570,
+        autoBind: true
+      }).data("kendoPivotConfiguratorV2");
+
+      const pg = $("#pivotgrid").data("kendoPivotGridV2");
+      pg.setDataSource(freshDs);
+
+      lastLayout = {
+        columns:  kendo.deepExtend([], DEFAULT_AXES.columns),
+        rows:     kendo.deepExtend([], DEFAULT_AXES.rows),
+        measures: kendo.deepExtend([], DEFAULT_AXES.measures)
+      };
+
+      ds = freshDs;
+      cfg.refresh?.(); pg.refresh?.();
+    }
+
+    function fetchAndBind(params) {
+        kendo.ui.progress($("#pivotgrid"), true);
+
+        $.getJSON(GET_URL, params)
+        .done(function (rows) {
+            rows = Array.isArray(rows) ? rows.map(r => ({ ...r, Value: +r.Value })) : [];
+
+            const newDs = new kendo.data.PivotDataSourceV2({
+                data: rows,
+                schema: { model: schemaModel, cube: freshCube()  },
+                columns:  kendo.deepExtend([], lastLayout.columns),
+                rows:     kendo.deepExtend([], lastLayout.rows),
+                measures: kendo.deepExtend([], lastLayout.measures),
+                filter:   null
+            });
+
+            const cfg = $("#configurator").data("kendoPivotConfiguratorV2");
+            const pg  = $("#pivotgrid").data("kendoPivotGridV2");
+            cfg.setDataSource(newDs);
+            pg.setDataSource(newDs);
+            ds = newDs;
+            captureFrom(newDs);
+        })
+        .always(function () {
+            kendo.ui.progress($("#pivotgrid"), false);
+        });
+    }
+
+    $("#applyBtn").on("click", function (e) {
+        e.preventDefault();
+        const p = buildParams();
+        if (!requiredOK(p)) return;
+        resetPivotSettings();
+        fetchAndBind(p);
+    });
+
+    $("#exportExcel").on("click", exportPivotExactlyAsShown);
+
+    function exportPivotExactlyAsShown() {
+          const $pg = $("#pivotgrid");
+
+    
+          const leafCount =
+            $pg.find(".k-pivotgrid-values .k-pivotgrid-tbody tr:visible").first()
+               .find("td:visible").length;
+
+
+          const $colPane = $pg.find(".k-pivotgrid-col-headers, .k-pivotgrid-column-headers").first();
+          const $hdrRows = $colPane.find(".k-pivotgrid-tbody tr:visible");
+
+ 
+          const levels = [];
+          $hdrRows.each(function () {
+            const row = [];
+            $(this).children("th,td").filter(":visible").each(function () {
+              const colspan = parseInt($(this).attr("colspan") || "1", 10);
+              const text = ($(this).text() || "").trim();
+              row.push({ text, colspan: isNaN(colspan) ? 1 : colspan });
+            });
+            if (row.length) levels.push(row);
+          });
+
+   
+          let colLabels = [];
+          if (levels.length && leafCount > 0) {
+            colLabels = new Array(leafCount).fill("");
+            for (let lvl = 0; lvl < levels.length; lvl++) {
+              let pos = 0;
+              for (const cell of levels[lvl]) {
+                const label = cell.text;
+                for (let k = 0; k < cell.colspan && pos < leafCount; k++, pos++) {
+                  if (label) colLabels[pos] = colLabels[pos] ? (colLabels[pos] + " | " + label) : label;
+                }
+              }
+            }
+            colLabels = colLabels.map((t, i) => t || `C${i + 1}`);
+          } else {
+            const lastRowCells = $hdrRows.last().children("th,td").filter(":visible");
+            if (lastRowCells.length) {
+              colLabels = lastRowCells.map(function () { return ($(this).text() || "").trim() || " "; }).get();
+            } else if (leafCount > 0) {
+              colLabels = Array.from({ length: leafCount }, (_, i) => `C${i + 1}`);
+            }
+          }
+
+          // --- row labels ---
+          const rowLabels = [];
+          $pg.find(".k-pivotgrid-row-headers .k-pivotgrid-tbody tr:visible").each(function () {
+            const $cells = $(this).children("th,td").filter(":visible");
+            if ($cells.length) rowLabels.push($cells.last().text().trim());
+          });
+
+          // --- values ---
+          const values = [];
+          $pg.find(".k-pivotgrid-values .k-pivotgrid-tbody tr:visible").each(function () {
+            const row = $(this).find("td:visible").map(function () {
+              const t = $(this).text().trim();
+              const n = kendo.parseFloat(t);
+              return isNaN(n) ? (t || null) : n;
+            }).get();
+            values.push(row);
+          });
+
+          // --- align counts ---
+          const totalRows = Math.min(rowLabels.length, values.length);
+          rowLabels.length = totalRows;
+          values.length = totalRows;
+
+          // ---------- 4) Build nested header rows (+ merges) ----------
+          const headerRowCount = Math.max(1, levels.length);
+
+          function colRef(idx0) {
+            let n = idx0 + 1, s = "";
+            while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); }
+            return s;
+          }
+
+          const headerRows = [];
+          const merges = [];
+          for (let r = 0; r < headerRowCount; r++) {
+              const cells = [{
+                value: r === 0 ? "Parameter" : "",
+                bold: true,
+                background: "#F2F2F2",
+                borderTop: { color: "#000000", size: 1 },
+                borderBottom: { color: "#000000", size: 1 },
+                borderLeft: { color: "#000000", size: 1 },
+                borderRight: { color: "#000000", size: 1 }
+              }];
+
+              for (let c = 0; c < leafCount; c++) {
+                cells.push({
+                  value: "",
+                  bold: true,
+                  background: "#F2F2F2",
+                  wrap: true,
+                  borderTop: { color: "#000000", size: 1 },
+                  borderBottom: { color: "#000000", size: 1 },
+                  borderLeft: { color: "#000000", size: 1 },
+                  borderRight: { color: "#000000", size: 1 }
+                });
+              }
+
+              if (levels[r]) {
+                let col = 1;
+                for (const cell of levels[r]) {
+                  const txt = (cell.text || "").trim();
+                  if (col <= leafCount) cells[col].value = txt || cells[col].value;
+                  if (cell.colspan > 1) {
+                    const start = colRef(col);
+                    const end = colRef(Math.min(col + cell.colspan - 1, leafCount));
+                    merges.push(`${start}${r + 1}:${end}${r + 1}`);
+                  }
+                  col += cell.colspan;
+                  if (col > leafCount + 1) break;
+                }
+              }
+
+              headerRows.push({ cells });
+          }
+
+          if (headerRowCount > 1) merges.push(`A1:A${headerRowCount}`);
+
+          // ---------- 5) Data rows ----------
+          const dataRows = [];
+          for (let r = 0; r < totalRows; r++) { 
+            const cells = [{ value: rowLabels[r] }];
+            const rowVals = values[r] || [];
+            for (let c = 0; c < leafCount; c++) {
+              const v = rowVals[c];
+              cells.push(typeof v === "number" ? { value: v, format: "#,##0.00" } : { value: v });
+            }
+            dataRows.push({ cells });
+          }
+
+          // ---------- 6) Workbook ----------
+          const columns = Array.from({ length: leafCount + 1 }, (_, i) => ({ width: i === 0 ? 200 : 130 }));
+          const workbook = new kendo.ooxml.Workbook({
+            sheets: [{
+              name: "ProdSched",
+              frozenRows: headerRowCount,
+              columns,
+              rows: [...headerRows, ...dataRows],
+              merges
+            }]
+          });
+
+          workbook.toDataURLAsync()
+            .then((dataURI) => kendo.saveAs({ dataURI, fileName: `ProdSched_${kendo.toString(new Date(), "yyyyMMdd_HHmm")}.xlsx` }))
+            .catch((err) => { console.error("Export failed:", err); kendo.alert("Failed to generate Excel file."); });
+    }
+
+ });
+</script>

@@ -1,0 +1,223 @@
+/* ===== Join Survey – Themeing yang mirip screenshot ===== */
+.join-survey {
+    --bg: #f6f8fb;
+    --card: #ffffff;
+    --line: #e7ebf3;
+    --text: #111827;
+    --muted: #64748b;
+    --accent: #10b981; /* hijau-teal (Apply & aksen) */
+    --accent-600: #059669;
+    --accent-50: #ecfdf5;
+    --soft: #f3f6fb; /* tombol toolbar */
+    --header: #f8fafc; /* header grid */
+    --shadow: 0 2px 8px rgba(16, 24, 40, .06);
+    --radius: 10px;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--bg);
+}
+
+    /* --- Judul Halaman --- */
+    .join-survey .page-title {
+        font-weight: 700;
+        font-size: 22px;
+        margin-bottom: 12px;
+        color: #0f172a;
+    }
+
+    /* --- Kartu utama & panel filter --- */
+    .join-survey .card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+    }
+
+    /* kotak filter ala screenshot */
+    .join-survey .filters {
+        background: var(--card);
+        border: 1px solid var(--line) !important;
+        border-radius: var(--radius);
+        padding: 14px 16px 10px;
+        position: relative;
+    }
+
+        /* label “Filters & Search” mengapung */
+        .join-survey .filters::before {
+            content: "Filters & Search";
+            position: absolute;
+            top: -12px;
+            left: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #475569;
+            background: var(--bg);
+            padding: 2px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+        }
+
+    /* label kolom */
+    .join-survey .form-label {
+        font-weight: 600;
+        color: var(--muted);
+        margin-bottom: 6px;
+    }
+
+    /* --- DropDownList gaya "pill" --- */
+    /* Tambahkan class .is-pill ke wrapper Kendo (lihat JS di bawah) */
+    .join-survey .is-pill {
+        border: 1px solid var(--line);
+        background: #fff;
+        border-radius: 9999px !important;
+        min-height: 38px;
+        height: 38px;
+        box-shadow: 0 1px 0 rgba(16,24,40,.02);
+        position: relative;
+    }
+
+        .join-survey .is-pill .k-input-inner {
+            padding-left: 28px; /* ruang untuk bullet */
+            line-height: 36px;
+        }
+
+        .join-survey .is-pill::before {
+            content: "";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 0 3px var(--accent-50);
+        }
+
+        .join-survey .is-pill.k-focus,
+        .join-survey .is-pill.k-hover {
+            border-color: #cdd5e3;
+        }
+
+    /* --- Tombol --- */
+    .join-survey .k-button {
+        border-radius: 8px;
+    }
+
+    /* Apply: primary hijau-teal */
+    .join-survey .k-button-solid-primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+    }
+
+        .join-survey .k-button-solid-primary:hover {
+            background: var(--accent-600);
+            border-color: var(--accent-600);
+        }
+
+    /* Toolbar: tombol soft/abu terang seperti screenshot */
+    .join-survey .toolbar .k-button,
+    .join-survey .k-button-solid-base {
+        background: var(--soft);
+        border: 1px solid var(--line);
+        color: #0f172a;
+    }
+
+        .join-survey .toolbar .k-button:hover,
+        .join-survey .k-button-solid-base:hover {
+            background: #eaf0f9;
+        }
+
+    /* --- Kendo Grid --- */
+    .join-survey .k-grid {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: #fff;
+        box-shadow: var(--shadow);
+    }
+
+    /* header grid lebih terang */
+    .join-survey .k-grid-header,
+    .join-survey .k-grid-header .k-table-th {
+        background: var(--header);
+        border-color: var(--line);
+    }
+
+        .join-survey .k-grid-header .k-table-th {
+            font-weight: 700;
+            color: #475569;
+            font-size: 13px;
+        }
+
+    /* sel & baris */
+    .join-survey .k-grid .k-table-td {
+        border-color: var(--line);
+        font-size: 13.5px;
+    }
+
+    .join-survey .k-grid .k-table-row:hover .k-table-td {
+        background: #f9fbff;
+    }
+
+    /* angka rata kanan */
+    .join-survey .text-right,
+    .join-survey .k-grid .text-right {
+        text-align: right !important;
+    }
+
+    /* Status Email: ikon hijau/merah */
+    .join-survey .status-true {
+        color: #16a34a;
+    }
+
+    .join-survey .status-false {
+        color: #ef4444;
+    }
+
+    /* kolom Action: ikon trash minimalis */
+    .join-survey .btn-delete {
+        padding: 6px 10px;
+    }
+
+        .join-survey .btn-delete .k-icon {
+            margin-right: 2px;
+        }
+
+    /* --- Pager & footer grid --- */
+    .join-survey .k-grid .k-pager-wrap {
+        border-top: 1px solid var(--line);
+        background: #fff;
+        padding: 8px 12px;
+    }
+
+    .join-survey .k-pager-numbers .k-link {
+        border-radius: 6px;
+    }
+
+        .join-survey .k-pager-numbers .k-link.k-selected {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+    /* --- Info “Showing x to y ...” (bila dipakai di luar pager) --- */
+    .join-survey .table-info {
+        color: var(--muted);
+        font-size: 12.5px;
+    }
+
+    /* --- Komponen modal --- */
+    .join-survey .modal .modal-content {
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+    }
+
+    .join-survey .modal .modal-header {
+        background: var(--header);
+        border-bottom: 1px solid var(--line);
+    }

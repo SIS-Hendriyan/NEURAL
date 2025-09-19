@@ -1,0 +1,19 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/NEURAL/wwwroot/assets/js/2024.4.1112/kendo-ui-license.js
+/.vs
+
+# Build artifacts
+bin/
+obj/
+
+# Visual Studio build configurations
+Debug/
+Release/
+
+# Rider / VS Code / Visual Studio settings (optional, remove if you want to commit)
+.vs/
+.idea/
+.vscode/

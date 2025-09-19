@@ -1,0 +1,924 @@
+﻿@model object
+@{
+    ViewData["Title"] = "Outlook";
+    var filterOptions = ViewBag.FilterOptions;
+    var emailSettings = ViewBag.EmailSettings;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+
+    <!-- Custom Professional Styling matching React Design -->
+    <style>
+        body {
+            background: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .main-container {
+            max-width: 1792px;
+            margin: 0 auto;
+            padding: 24px;
+            min-height: 100vh;
+        }
+
+        /* Header Card */
+        .header-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+        }
+
+        .header-title {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+            margin-bottom: 8px;
+        }
+
+        /* Filter Panel - Matching React Design */
+        .filter-panel {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .filter-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .filter-icon {
+            width: 20px;
+            height: 20px;
+            color: #64748b;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .filter-dropdown {
+            height: 40px !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 6px !important;
+            background: white !important;
+            font-size: 0.875rem !important;
+        }
+
+            .filter-dropdown:focus {
+                border-color: #3b82f6 !important;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+            }
+
+        /* Action Toolbar - Matching React Design */
+        .action-toolbar {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: #148484 !important;
+            border: 1px solid #148484 !important;
+            color: white !important;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+            .btn-primary:hover {
+                background: #0d6666 !important;
+                border-color: #0d6666 !important;
+                opacity: 0.9;
+            }
+
+        .btn-secondary {
+            background: white !important;
+            border: 1px solid #d1d5db !important;
+            color: #374151 !important;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+            .btn-secondary:hover {
+                background: #f9fafb !important;
+                border-color: #9ca3af !important;
+            }
+
+        /* Grid Container - Matching React Design */
+        .grid-container {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .k-grid-header th {
+            background: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+            font-weight: 600 !important;
+            color: #374151 !important;
+            padding: 12px 16px !important;
+            font-size: 0.875rem !important;
+        }
+
+            .k-grid-header th:hover {
+                background: #f1f5f9 !important;
+            }
+
+        .k-grid td {
+            padding: 12px 16px !important;
+            border-color: #f1f5f9 !important;
+            font-size: 0.875rem !important;
+        }
+
+        .k-grid tr:hover {
+            background: #f8fafc !important;
+        }
+
+        /* Status Icons */
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .status-sent {
+            color: #10b981;
+        }
+
+        .status-pending {
+            color: #ef4444;
+        }
+
+        /* Action Buttons in Grid */
+        .action-btn {
+            padding: 6px !important;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 4px !important;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 0 2px;
+        }
+
+            .action-btn.view:hover {
+                background: #dbeafe !important;
+                color: #3b82f6 !important;
+            }
+
+            .action-btn.delete:hover {
+                background: #fee2e2 !important;
+                color: #dc2626 !important;
+            }
+
+        /* Alert Messages */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #34d399;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #f87171;
+        }
+
+        /* Modal Styles - Matching React Design */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000 !important;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            max-width: 90vw;
+            width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            padding: 24px 24px 0;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .modal-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            margin: 0;
+        }
+
+        .modal-description {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #9ca3af;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .modal-close:hover {
+                color: #6b7280;
+            }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        /* Report Table Styles - Matching React Design */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+            .report-table th,
+            .report-table td {
+                border: 1px solid #e5e7eb;
+                padding: 8px 12px;
+                text-align: center;
+                font-size: 0.875rem;
+            }
+
+            .report-table th {
+                background: #f9fafb;
+                font-weight: 600;
+                color: #374151;
+            }
+
+            .report-table .site-header {
+                background: #148484;
+                color: white;
+                font-weight: 600;
+            }
+
+            .report-table tbody tr:hover {
+                background: #f9fafb;
+            }
+
+        /* Header Controls */
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            gap: 16px;
+        }
+
+        .header-controls-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* Email Grid Styles */
+        .email-grid-container {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-data-message {
+            text-align: center;
+            padding: 48px 24px;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        /* Color-coded rows for different data types */
+        .bg-blue-50 {
+            background-color: rgba(239, 246, 255, 0.5);
+        }
+
+        .bg-green-100 {
+            background-color: rgba(220, 252, 231, 0.5);
+        }
+
+        .bg-purple-100 {
+            background-color: rgba(243, 232, 255, 0.5);
+        }
+
+        .bg-orange-100 {
+            background-color: rgba(255, 237, 213, 0.5);
+        }
+
+        .bg-red-100 {
+            background-color: rgba(254, 226, 226, 0.5);
+        }
+
+        .bg-teal-100 {
+            background-color: rgba(204, 251, 241, 0.5);
+        }
+
+        .bg-gray-100 {
+            background-color: rgba(243, 244, 246, 0.5);
+        }
+
+        .k-icon.k-i-edit.icon-blue {
+            color: #3b82f6;
+        }
+
+        .k-icon.k-i-trash.icon-red {
+            color: #dc2626;
+        }
+
+        .modal-xl {
+            width: 90% !important;
+            max-width: 1400px !important; /* sesuaikan kebutuhan */
+        }
+
+        /* ===== Bigger action icons (table) ===== */
+        .action-buttons {
+            gap: 8px;
+        }
+        /* beri jarak sedikit lebih longgar */
+        .action-btn {
+            width: 40px; /* sebelumnya 32px */
+            height: 40px;
+            border-radius: 8px; /* sedikit lebih membulat */
+        }
+
+            .action-btn .bx {
+                font-size: 22px; /* BESARKAN ICON BOXICONS */
+                line-height: 1;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* (Opsional) warna ikon per-aksi */
+            /* Hover tetap halus */
+            .action-btn:hover {
+                background: #f1f5f9;
+                transform: translateY(-1px);
+            }
+
+        /* ===== Jika pakai command column Kendo (email grid) ===== */
+        .k-grid .k-grid-edit .bx,
+        .k-grid .k-grid-delete .bx {
+            font-size: 20px; /* besarkan icon edit/delete di email grid */
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .status-dot.draft { background: #94a3b8; }
+        .status-dot.review { background: #f59e0b; }
+        .status-dot.approved { background: #10b981; }
+
+        .status-overview {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            font-size: 14px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header-card">
+            <h1 class="header-title">Outlook</h1>
+            <div class="status-overview">
+                <div class="status-item">
+                    <div class="status-dot draft"></div>
+                    <span id="draftCount">0 Draft</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot review"></div>
+                    <span id="reviewCount">0 In Review</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot approved"></div>
+                    <span id="approvedCount">0 Approved</span>
+                </div>
+                <div class="status-item">
+                    <span id="totalCount" style="font-weight: 500;">Total: 0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">
+                <span>✓</span>
+                @TempData["SuccessMessage"]
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-error">
+                <span>⚠</span>
+                @TempData["ErrorMessage"]
+            </div>
+        }
+
+        <!-- Filter Panel -->
+        <div class="filter-panel">
+            <div class="filter-header">
+                <div class="filter-title">
+                    <svg class="filter-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"></path>
+                    </svg>
+                    Filters & Search
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button id="applyFiltersBtn" class="k-button btn-primary">
+                        <span class="bx bx-check"></span>
+                        Apply
+                    </button>
+                    <button id="clearFiltersBtn" class="k-button btn-secondary" style="display: none;">
+                        <span class="k-icon k-i-x"></span>
+                        Clear All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Dropdowns -->
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label class="filter-label">Prodsched Version</label>
+                    <input id="prodschedVersionFilter" class="filter-dropdown" />
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Actual Version</label>
+                    <input id="actualVersionFilter" class="filter-dropdown" />
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Jobsite</label>
+                    <input id="jobsiteFilter" class="filter-dropdown" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Toolbar -->
+        <div class="action-toolbar">
+            <div class="action-buttons">
+                <button id="createNewBtn" class="k-button btn-primary">
+                    <span class="bx bx-plus"></span>
+                    Create Outlook
+                </button>
+            </div>
+        </div>
+
+        <!-- Kendo Grid -->
+        <div class="grid-container">
+            <div id="outlookGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            let searchTerm = '';
+            let appliedSearchTerm = '';
+            let pendingFilters = {
+                prodschedVersion: 'all',
+                actualVersion: 'all',
+                jobsite: 'all'
+            };
+            let appliedFilters = {
+                prodschedVersion: 'all',
+                actualVersion: 'all',
+                jobsite: 'all'
+            };
+
+            // Initialize filter dropdowns
+            $("#prodschedVersionFilter").kendoDropDownList({
+                dataSource: {
+                    data: [
+                        { text: "All Versions", value: "all" },
+        @foreach (var version in filterOptions.ProdschedVersions)
+        {
+            <text>{ text: "@version", value: "@version" },</text>
+        }
+                    ]
+                },
+                dataTextField: "text",
+                dataValueField: "value",
+                value: "all",
+                change: function () {
+                    pendingFilters.prodschedVersion = this.value();
+                    updateFilterStatus();
+                }
+            });
+
+            $("#actualVersionFilter").kendoDropDownList({
+                dataSource: {
+                    data: [
+                        { text: "All Versions", value: "all" },
+        @foreach (var version in filterOptions.ActualVersions)
+        {
+            <text>{ text: "@version", value: "@version" },</text>
+        }
+                    ]
+                },
+                dataTextField: "text",
+                dataValueField: "value",
+                value: "all",
+                change: function () {
+                    pendingFilters.actualVersion = this.value();
+                    updateFilterStatus();
+                }
+            });
+
+            $("#jobsiteFilter").kendoDropDownList({
+                dataSource: {
+                    data: [
+                        { text: "All Jobsites", value: "all" },
+        @foreach (var jobsite in filterOptions.Jobsites)
+        {
+            <text>{ text: "@jobsite", value: "@jobsite" },</text>
+        }
+                    ]
+                },
+                dataTextField: "text",
+                dataValueField: "value",
+                value: "all",
+                change: function () {
+                    pendingFilters.jobsite = this.value();
+                    updateFilterStatus();
+                }
+            });
+
+            // Search input
+            $("#searchInput").on('input', function() {
+                searchTerm = $(this).val();
+                updateFilterStatus();
+            });
+
+            // Apply filters
+            $("#applyFiltersBtn").click(function() {
+                appliedFilters = { ...pendingFilters };
+                appliedSearchTerm = searchTerm;
+                refreshGrid();
+            });
+
+            // Clear filters
+            $("#clearFiltersBtn").click(function() {
+                $("#prodschedVersionFilter").data("kendoDropDownList").value("all");
+                $("#actualVersionFilter").data("kendoDropDownList").value("all");
+                $("#jobsiteFilter").data("kendoDropDownList").value("all");
+                $("#searchInput").val('');
+                searchTerm = '';
+                pendingFilters = {
+                    prodschedVersion: 'all',
+                    actualVersion: 'all',
+                    jobsite: 'all'
+                };
+                appliedFilters = {
+                    prodschedVersion: 'all',
+                    actualVersion: 'all',
+                    jobsite: 'all'
+                };
+                appliedSearchTerm = '';
+                refreshGrid();
+                updateFilterStatus();
+            });
+
+            // Initialize Kendo Grid
+            $("#outlookGrid").kendoGrid({
+                dataSource: {
+                    transport: {
+                        read: {
+                            url: "@Url.Action("GetOutlookData", "Outlook")",
+                            type: "POST",
+                            contentType: "application/json",
+                            data: function () {
+                                return JSON.stringify(getFilterData());
+                            }
+                        },
+                        parameterMap: function (options, operation) {
+                            if (operation === "read") {
+                                return JSON.stringify({
+                                    Take: options.take,
+                                    Skip: options.skip,
+                                    SortField: options.sort && options.sort[0] ? options.sort[0].field : null,
+                                    SortDir: options.sort && options.sort[0] ? options.sort[0].dir : null,
+                                    Filter: appliedFilters,
+                                    SearchTerm: appliedSearchTerm
+                                });
+                            }
+                        }
+                    },
+                    schema: {
+                        data: "Data",
+                        total: "Total",
+                        model: {
+                            id: "Id"
+                        }
+                    },
+                    pageSize: 10,
+                    serverPaging: true,
+                    serverSorting: true
+                },
+                height: 600,
+                sortable: true,
+                pageable: {
+                    refresh: true,
+                    pageSizes: [10, 20, 50],
+                    buttonCount: 5
+                },
+                columns: [
+                    {
+                        field: "OutlookVersion",
+                        title: "Outlook Version",
+                        width: 300,
+                        template: function (dataItem) {
+                            return dataItem.OutlookVersion || "<span style='color: #94a3b8; font-style: italic;'>Not generated</span>";
+                        }
+                    },
+                    {
+                        field: "ProdschedVersion",
+                        title: "Prodsched Version",
+                        width: 200,
+                        template: '<span style="font-family: monospace; font-size: 13px;">#= ProdschedVersion #</span>'
+                    },
+                    {
+                        field: "ActualVersion",
+                        title: "Actual Version",
+                        width: 150,
+                        template: '<span style="font-family: monospace; font-size: 13px;">#= ActualVersion #</span>'
+                    },
+                    {
+                        field: "Status",
+                        title: "Status",
+                        width: 120,
+                        template: function (dataItem) {
+                            switch (dataItem.Status) {
+                                case 1: // Draft
+                                    return "<span class='status-badge status-draft'>Draft</span>";
+                                case 2: // Review
+                                    return "<span class='status-badge status-review'>Review</span>";
+                                case 3: // Approved
+                                    return "<span class='status-badge status-approved'>Approved</span>";
+                                default:
+                                    return "<span class='status-badge status-draft'>Unknown</span>";
+                            }
+                        }
+                    },
+                    {
+                        field: "Author",
+                        title: "Author",
+                        width: 120,
+                        template: '<span style="font-weight: 500;">#= Author #</span>'
+                    },
+                    {
+                        field: "CreatedDate",
+                        title: "Created Date",
+                        width: 130,
+                        template: "#= kendo.toString(kendo.parseDate(CreatedDate), 'MM/dd/yyyy') #"
+                    },
+                    {
+                        field: "Reviewer",
+                        title: "Reviewer",
+                        width: 120,
+                        template: function (dataItem) {
+                            return dataItem.Reviewer || "<span style='color: #94a3b8;'>-</span>";
+                        }
+                    },
+                    {
+                        field: "ApprovalDueDate",
+                        title: "Approval Due Date",
+                        width: 140,
+                        template: function (dataItem) {
+                            return dataItem.ApprovalDueDate ?
+                                kendo.toString(kendo.parseDate(dataItem.ApprovalDueDate), 'MM/dd/yyyy') :
+                                "<span style='color: #94a3b8;'>-</span>";
+                        }
+                    },
+                    {
+                        field: "SentDate",
+                        title: "Sent Date",
+                        width: 120,
+                        template: function (dataItem) {
+                            return dataItem.SentDate ?
+                                kendo.toString(kendo.parseDate(dataItem.SentDate), 'MM/dd/yyyy') :
+                                "<span style='color: #94a3b8;'>-</span>";
+                        }
+                    },
+                    {
+                        field: "ApprovedDate",
+                        title: "Approved Date",
+                        width: 130,
+                        template: function (dataItem) {
+                            return dataItem.ApprovedDate ?
+                                kendo.toString(kendo.parseDate(dataItem.ApprovedDate), 'MM/dd/yyyy') :
+                                "<span style='color: #94a3b8;'>-</span>";
+                        }
+                    },
+                    {
+                        field: "Actions",
+                        title: "Actions",
+                        width: 150,
+                        sortable: false,
+                        template: function(dataItem) {
+                            return '<div style="display: flex; gap: 4px; align-items: center;">' +
+                                   '<button class="action-btn copy" onclick="viewDetail(' + dataItem.Id + ')" title="View Details">' +
+                                   '<span class="bx bx-show"></span>' +
+                                   '</button>' +
+
+                                   '<button class="action-btn copy" onclick="copyFromExisting(' + dataItem.Id + ')" title="Copy from existing">' +
+                                   '<span class="bx bx-copy"></span>' +
+                                   '</button>' +
+
+                                   '<button class="action-btn delete" onclick="deleteRow(' + dataItem.Id + ')" title="Delete">' +
+                                   '<span class="bx bxs-trash"></span>' +
+                                   '</button>' +
+                                   '</div>';
+                        }
+                    }
+                ],
+                dataBound: function() {
+                    updateStatusCounts();
+                }
+            });
+
+            // Helper functions
+            function getFilterData() {
+                return {
+                    Filter: appliedFilters
+                };
+            }
+
+            function refreshGrid() {
+                $("#outlookGrid").data("kendoGrid").dataSource.read();
+            }
+
+            function updateFilterStatus() {
+                var hasFilters = pendingFilters.prodschedVersion !== "all" ||
+                               pendingFilters.actualVersion !== "all" ||
+                               pendingFilters.jobsite !== "all" ||
+                               searchTerm.length > 0;
+
+                $("#clearFiltersBtn").toggle(hasFilters);
+            }
+
+            function updateStatusCounts() {
+                var grid = $("#outlookGrid").data("kendoGrid");
+                var data = grid.dataSource.data();
+
+                var draftCount = 0, reviewCount = 0, approvedCount = 0;
+
+                for (var i = 0; i < data.length; i++) {
+                    switch (data[i].Status) {
+                        case 1: draftCount++; break;
+                        case 2: reviewCount++; break;
+                        case 3: approvedCount++; break;
+                    }
+                }
+
+                $("#draftCount").text(draftCount + " Draft");
+                $("#reviewCount").text(reviewCount + " In Review");
+                $("#approvedCount").text(approvedCount + " Approved");
+                $("#totalCount").text("Total: " + data.length);
+            }
+
+            // Button event handlers
+            $("#createNewBtn").click(function () {
+                alert("Create Outlook");
+            });
+
+            window.copyFromExisting = function(id) {
+                alert("Copy From Existing Outlook id " + id);
+            }
+
+            window.viewDetail = function(id) {
+                alert("View Detail Outlook Outlook id " + id);
+            }
+
+            window.deleteRow = function(id) {
+                if (confirm("Are you sure you want to delete this Outlook?")) {
+                    $.ajax({
+                        url: "@Url.Action("Delete", "Outlook")",
+                        type: "POST",
+                        contentType: "application/json",
+                        data: JSON.stringify([id]),
+                        success: function (result) {
+                            if (result.success) {
+                                alert(result.message);
+                                refreshGrid();
+                            } else {
+                                alert("Error: " + result.message);
+                            }
+                        },
+                        error: function () {
+                            alert("Error occurred while deleting outlook.");
+                        }
+                    });
+                }
+            };
+        });
+    </script>
+</body>
+</html>

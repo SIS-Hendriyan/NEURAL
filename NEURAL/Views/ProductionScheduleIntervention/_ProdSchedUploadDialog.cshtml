@@ -1,0 +1,203 @@
+﻿
+<style>
+    .custom-upload-wrapper {
+        border: 2px dashed #ccc;
+        padding: 30px;
+        text-align: center;
+        border-radius: 10px;
+        background-color: #fdfdfd;
+    }
+
+    .upload-icon {
+        font-size: 48px;
+        color: #888;
+    }
+
+    .upload-text {
+        margin-top: 10px;
+        font-size: 14px;
+        color: #666;
+    }
+
+    .k-window-titlebar .k-icon {
+        font-size: 18px;
+    }
+
+    .k-dialog {
+        background-color: #2F54EB;
+        color: white;
+        border-radius: 8px;
+    }
+
+    .dropbox {
+        border: 2px dashed #d6d6d6;
+        border-radius: 10px;
+        padding: 28px;
+        text-align: center;
+        cursor: pointer;
+        background: #fff;
+        transition: border-color .15s ease, background .15s ease;
+    }
+
+        .dropbox:hover {
+            border-color: #a7a7a7;
+            background: #fafafa;
+        }
+
+        .dropbox.dragover {
+            border-color: #1a73e8;
+            background: #f5faff;
+        }
+
+    .dropbox-icon {
+        font-size: 40px;
+        margin-bottom: 8px;
+        color: #9aa4b2;
+    }
+
+    .dropbox-text {
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .dropbox-file {
+        margin-top: 8px;
+        font-size: 12px;
+    }
+
+    .input-with-leading-icon {
+        position: relative;
+    }
+
+        .input-with-leading-icon .k-input-prefix {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .input-with-leading-icon .k-dropdownlist {
+            padding-left: 36px;
+        }
+</style>
+
+<div id="uploadWindow">
+    <form id="uploadForm" enctype="multipart/form-data">
+
+        <label>Upload Excel File</label>
+        <div id="uploadBox" class="dropbox">
+            <div class="dropbox-icon k-icon k-i-upload"></div>
+            <div class="dropbox-text">Drop files here or click to upload.</div>
+            <div id="fileName" class="dropbox-file k-text-secondary"></div>
+        </div>
+
+        <input name="excelFile" type="file" id="excelFileUpload" />
+
+
+        <div style="margin-top: 15px; text-align: right;">
+            <div style="margin-top: 15px; text-align: right; border-radius: 8px;">
+                <button id="btnSubmit" type="submit" class="k-button k-button-solid-primary btn-blue btn-round-sm btn-h-36">
+                    <span class="k-icon k-i-download"></span> Save
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+    $(document).ready(function () {
+        var upload = $("#excelFileUpload").kendoUpload({
+        async: { autoUpload: false },
+        multiple: false,
+        validation: { allowedExtensions: [".xlsx", ".xls"] },
+        select: function (e) {
+            if (e.files && e.files.length) {
+                $("#fileName").text(e.files[0].name);
+            }
+        }
+        }).data("kendoUpload");
+
+        upload.wrapper.hide();
+
+
+        $("#uploadBox").on("click", function () {
+            $(upload.wrapper).find("input[type=file]").trigger("click");
+        });
+
+        var $box = $("#uploadBox");
+        $box.on("dragenter dragover", function (e) {
+            e.preventDefault(); e.stopPropagation();
+            $box.addClass("dragover");
+        });
+        $box.on("dragleave dragend drop", function (e) {
+            e.preventDefault(); e.stopPropagation();
+            $box.removeClass("dragover");
+        });
+
+
+        $("#uploadForm").submit(function (e) {
+            e.preventDefault();
+            var $form = $(this);
+            var $container = $form.closest(".k-window-content, .k-dialog-content");
+            if ($container.length === 0) $container = $form;
+            var $submitBtn = $form.find('button[type="submit"], .k-button[type="submit"]');
+
+            var file = upload.getFiles()[0]?.rawFile;
+            if (!file) {
+                alert("Please complete all fields.");
+                return;
+            }
+
+            var formData = new FormData();
+            formData.append("file", file);
+
+            $.ajax({
+                url:"@Url.Action("UploadIntervention", "ProductionScheduleIntervention")",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function () {
+                  kendo.ui.progress($container, true);
+                  $submitBtn.prop("disabled", true).addClass("k-disabled");
+                  $form.find(":input").prop("disabled", true);
+                },
+                success: function (res) {
+
+                    var $content = $("#uploadForm").closest(".k-window-content, .k-dialog-content");
+
+                    var win = $content.data("kendoWindow");
+                    if (win) win.close();
+
+                    var dlg = $content.closest(".k-dialog").data("kendoDialog");
+                    if (dlg) dlg.close();
+
+                        if (window.parent && typeof window.parent.notifyUploadSuccess === "function") {
+                        window.parent.notifyUploadSuccess(res);
+                    } else if (typeof notifyUploadSuccess === "function") {
+                        notifyUploadSuccess(res);
+                    }
+
+                },
+                error: function (xhr, status, error) {
+                    if (win) win.close();
+                    const msg = xhr.responseJSON?.message || xhr.responseText || xhr.statusText || "Internal Server Error";
+                    var dlg = $content.closest(".k-dialog").data("kendoDialog");
+                    if (dlg) dlg.close();
+
+                        if (window.parent && typeof window.parent.notifyUploadError === "function") {
+                        window.parent.notifyUploadError(msg);
+                    } else if (typeof notifyUploadError === "function") {
+                        notifyUploadError(msg);
+                    }
+                },
+                complete: function () {
+                  kendo.ui.progress($container, false);
+                  $form.find(":input").prop("disabled", false);
+                  $submitBtn.prop("disabled", false).removeClass("k-disabled");
+                }
+            });
+        });
+
+    });
+</script>

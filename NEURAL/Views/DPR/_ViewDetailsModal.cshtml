@@ -1,0 +1,304 @@
+﻿<!-- View Details Modal -->
+<div class="modal fade" id="viewDetailsModal" tabindex="-1" aria-labelledby="viewDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                <h5 class="modal-title" id="viewDetailsModalLabel">
+                    <i class="k-icon k-i-eye"></i> DPR Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Header Information -->
+                <div class="row mb-4 p-3" style="background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Jobsite</label>
+                        <div id="detailJobsite" class="fs-5 fw-semibold"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Date</label>
+                        <div id="detailDate" class="fs-5"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Status</label>
+                        <div id="detailStatus"></div>
+                    </div>
+                </div>
+
+                <!-- Progress Overview -->
+                <div class="p-3 mb-4" style="background-color: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe;">
+                    <h6 class="fw-bold mb-3">Progress Overview</h6>
+                    <div class="row" id="progressOverview">
+                        <!-- Progress badges will be populated here -->
+                    </div>
+
+                    <!-- Error Logs -->
+                    <div id="errorLogsSection" class="mt-4" style="display: none;">
+                        <h6 class="fw-bold mb-2 text-danger">Error Logs</h6>
+                        <div id="errorLogs"></div>
+                    </div>
+                </div>
+
+                <!-- Tabs for detailed data -->
+                <div id="viewDetailsTabs">
+                    <ul>
+                        <li class="k-state-active">PRODUCTION</li>
+                        <li>MINING</li>
+                        <li>TRANSPORT</li>
+                        <li>STOCKPILE</li>
+                        <li>GLOBAL WEATHER</li>
+                    </ul>
+
+                    <!-- Production Tab -->
+                    <div>
+                        <div id="detailProductionGrid"></div>
+                    </div>
+
+                    <!-- Mining Tab -->
+                    <div>
+                        <div id="detailMiningGrid"></div>
+                    </div>
+
+                    <!-- Transport Tab -->
+                    <div>
+                        <div id="detailTransportGrid"></div>
+                    </div>
+
+                    <!-- Stockpile Tab -->
+                    <div>
+                        <div id="detailStockpileGrid"></div>
+                    </div>
+
+                    <!-- Global Weather Tab -->
+                    <div>
+                        <div id="detailGlobalWeatherGrid"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showDPRDetails(dprData) {
+        // Populate header information
+        $("#detailJobsite").text(dprData.Jobsite);
+        $("#detailDate").text(formatDate(dprData.Date));
+
+        var statusBadge = '<span class="status-badge ' +
+            (dprData.Status === 'Quick' ? 'status-quick' : 'status-fix') +
+            '">' + dprData.Status + '</span>';
+        $("#detailStatus").html(statusBadge);
+
+        // Populate progress overview
+        var progressHtml = '';
+        progressHtml += '<div class="col">';
+        progressHtml += '<label class="form-label fw-bold">Generate Data DP</label>';
+        progressHtml += '<div>' + getProgressBadge(dprData.Progress.GenerateDataDP) + '</div>';
+        progressHtml += '</div>';
+
+        progressHtml += '<div class="col">';
+        progressHtml += '<label class="form-label fw-bold">Generate Data DF</label>';
+        progressHtml += '<div>' + getProgressBadge(dprData.Progress.GenerateDataDF) + '</div>';
+        progressHtml += '</div>';
+
+        progressHtml += '<div class="col">';
+        progressHtml += '<label class="form-label fw-bold">Generate Report</label>';
+        progressHtml += '<div>' + getProgressBadge(dprData.Progress.GenerateReport) + '</div>';
+        progressHtml += '</div>';
+
+        progressHtml += '<div class="col">';
+        progressHtml += '<label class="form-label fw-bold">Success</label>';
+        progressHtml += '<div>' + getProgressBadge(dprData.Progress.Success) + '</div>';
+        progressHtml += '</div>';
+
+        progressHtml += '<div class="col">';
+        progressHtml += '<label class="form-label fw-bold">Send Email</label>';
+        progressHtml += '<div>' + getProgressBadge(dprData.Progress.SendEmail) + '</div>';
+        progressHtml += '</div>';
+
+        $("#progressOverview").html(progressHtml);
+
+        // Show error logs if any
+        if (dprData.Progress.ErrorLogs) {
+            var errorHtml = '';
+            if (dprData.Progress.ErrorLogs.GenerateDataDP) {
+                errorHtml += '<div class="p-2 mb-2 border border-danger rounded" style="background-color: #fef2f2;">';
+                errorHtml += '<strong>Generate Data DP:</strong> ' + dprData.Progress.ErrorLogs.GenerateDataDP;
+                errorHtml += '</div>';
+            }
+            if (dprData.Progress.ErrorLogs.GenerateDataDF) {
+                errorHtml += '<div class="p-2 mb-2 border border-danger rounded" style="background-color: #fef2f2;">';
+                errorHtml += '<strong>Generate Data DF:</strong> ' + dprData.Progress.ErrorLogs.GenerateDataDF;
+                errorHtml += '</div>';
+            }
+            if (dprData.Progress.ErrorLogs.GenerateReport) {
+                errorHtml += '<div class="p-2 mb-2 border border-danger rounded" style="background-color: #fef2f2;">';
+                errorHtml += '<strong>Generate Report:</strong> ' + dprData.Progress.ErrorLogs.GenerateReport;
+                errorHtml += '</div>';
+            }
+
+            if (errorHtml) {
+                $("#errorLogs").html(errorHtml);
+                $("#errorLogsSection").show();
+            } else {
+                $("#errorLogsSection").hide();
+            }
+        } else {
+            $("#errorLogsSection").hide();
+        }
+
+        // Initialize tabs
+        $("#viewDetailsTabs").kendoTabStrip({
+            animation: {
+                open: {
+                    effects: "fadeIn"
+                }
+            }
+        });
+
+        // Initialize grids with mock data
+        initializeDetailGrids();
+    }
+
+    function initializeDetailGrids() {
+        // Mock data for demonstration
+        var mockProductionData = [
+            { Area: 'Area 1', Pit: 'Pit A', Process: 'Mining', Production: 150, WorkingHours: 8 },
+            { Area: 'Area 2', Pit: 'Pit B', Process: 'Hauling', Production: 120, WorkingHours: 7 }
+        ];
+
+        var mockMiningData = [
+            { Area: 'Area 1', Pit: 'Pit A', Process: 'Drilling', S1: 10, S2: 15, S3: 12, S4: 18, S5: 14 }
+        ];
+
+        var mockTransportData = [
+            { Area: 'Area 1', Pit: 'Pit A', Process: 'Hauling', Distance: 2.5, Payload: 80, TripPerDay: 12 }
+        ];
+
+        var mockStockpileData = [
+            { Area: 'Area 1', Pit: 'Pit A', Process: 'Storage', Owner: 'Company A', Location: 'Location A', StockpileName: 'SP-001', Stock: 500, Capacity: 1000 }
+        ];
+
+        var mockGlobalWeatherData = [
+            { RainHours: 2, RainfallPlan: 10, RainfallActual: 8, Frequency: 3, SlipperyTime: 1 }
+        ];
+
+        // Production Grid
+        $("#detailProductionGrid").kendoGrid({
+            dataSource: { data: mockProductionData },
+            columns: [
+                { field: "Area", title: "Area" },
+                { field: "Pit", title: "Pit" },
+                { field: "Process", title: "Process" },
+                { field: "Production", title: "Production", format: "{0:n2}" },
+                { field: "WorkingHours", title: "Working Hours", format: "{0:n2}" }
+            ],
+            height: 300
+        });
+
+        // Mining Grid
+        $("#detailMiningGrid").kendoGrid({
+            dataSource: { data: mockMiningData },
+            columns: [
+                { field: "Area", title: "Area" },
+                { field: "Pit", title: "Pit" },
+                { field: "Process", title: "Process" },
+                { field: "S1", title: "S1", format: "{0:n2}" },
+                { field: "S2", title: "S2", format: "{0:n2}" },
+                { field: "S3", title: "S3", format: "{0:n2}" },
+                { field: "S4", title: "S4", format: "{0:n2}" },
+                { field: "S5", title: "S5", format: "{0:n2}" },
+                { title: "...", template: "..." }
+            ],
+            scrollable: true,
+            height: 300
+        });
+
+        // Transport Grid
+        $("#detailTransportGrid").kendoGrid({
+            dataSource: { data: mockTransportData },
+            columns: [
+                { field: "Area", title: "Area" },
+                { field: "Pit", title: "Pit" },
+                { field: "Process", title: "Process" },
+                { field: "Distance", title: "Distance", format: "{0:n2}" },
+                { field: "Payload", title: "Payload", format: "{0:n2}" },
+                { field: "TripPerDay", title: "Trip per Day", format: "{0:n2}" }
+            ],
+            height: 300
+        });
+
+        // Stockpile Grid
+        $("#detailStockpileGrid").kendoGrid({
+            dataSource: { data: mockStockpileData },
+            columns: [
+                { field: "Area", title: "Area" },
+                { field: "Pit", title: "Pit" },
+                { field: "Process", title: "Process" },
+                { field: "Owner", title: "Owner" },
+                { field: "Location", title: "Location" },
+                { field: "StockpileName", title: "Stockpile Name" },
+                { field: "Stock", title: "Stock", format: "{0:n2}" },
+                { field: "Capacity", title: "Capacity", format: "{0:n2}" }
+            ],
+            scrollable: true,
+            height: 300
+        });
+
+        // Global Weather Grid
+        $("#detailGlobalWeatherGrid").kendoGrid({
+            dataSource: { data: mockGlobalWeatherData },
+            columns: [
+                { field: "RainHours", title: "Rain Hours", format: "{0:n2}" },
+                { field: "RainfallPlan", title: "Rainfall Plan", format: "{0:n2}" },
+                { field: "RainfallActual", title: "Rainfall Actual", format: "{0:n2}" },
+                { field: "Frequency", title: "Frequency", format: "{0:n2}" },
+                { field: "SlipperyTime", title: "Slippery Time", format: "{0:n2}" }
+            ],
+            height: 300
+        });
+    }
+
+    function getProgressBadge(status) {
+        var badgeClass = '';
+        var text = '';
+
+        switch (status) {
+            case 'completed':
+                badgeClass = 'bg-success text-white';
+                text = 'Completed';
+                break;
+            case 'running':
+                badgeClass = 'bg-primary text-white';
+                text = 'Running';
+                break;
+            case 'error':
+                badgeClass = 'bg-danger text-white';
+                text = 'Error';
+                break;
+            case 'pending':
+                badgeClass = 'bg-secondary text-white';
+                text = 'Pending';
+                break;
+            default:
+                badgeClass = 'bg-light text-dark';
+                text = status;
+        }
+
+        return '<span class="badge ' + badgeClass + '">' + text + '</span>';
+    }
+
+    function formatDate(dateString) {
+        var date = new Date(dateString);
+        return date.toLocaleDateString('en-GB', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+</script>

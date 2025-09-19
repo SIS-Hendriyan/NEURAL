@@ -1,0 +1,259 @@
+﻿@{
+    ViewBag.Title = "PRODUCTION SCHEDULE (INTERVENTION)";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .toolbar {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin: 12px 0;
+        justify-content: flex-end;
+    }
+        .toolbar .actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+    .k-button.rounded {
+        border-radius: 999px;
+    }
+
+  
+
+    .rounded {
+        border-radius: 999px;
+    }
+
+    .grid-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 16px 0 8px;
+    }
+
+</style>
+
+
+<div class="grid-header">
+    <div>
+        <div class="k-mt-1"><strong id="lblMbr">@ViewBag.MbrVersion</strong> (<span id="lblYear">@ViewBag.Year</span>)</div>
+    </div>
+</div>
+
+<div class="toolbar">
+    <input id="jobsiteDdl" style="width: 260px;" />
+    <input id="processDdl" style="width: 260px;" />
+</div>
+<input type="hidden" id="hdr" value="@ViewBag.HeaderId" />
+<input type="hidden" id="mbr" value="@ViewBag.MbrVersion" />
+<div id="grid"></div>
+<div id="prodSchedDownloadWindow" style="display: none;"></div>
+<div id="prodSchedUploadWindow" style="display: none;"></div>
+<script>
+  var isReadOnly;
+  $(document).ready(function () {
+    getMenuAccess().done(function (noAccess) {
+        if (noAccess) { window.location.href = "../Home/Index"; return; }
+
+            getMenuIsReadOnly().done(function (dataRead) {
+                isReadOnly   = dataRead;
+                const headerId = $("#hdr").val();
+                let jobsiteReady = false;
+                let processReady = false;
+                let firstLoadDone = false;
+                if (!headerId || headerId === "0") { alert("Missing headerId"); return; }
+
+                const ui = { size:"small", rounded:"medium", fillMode:"outline" };
+                  // --- DropDowns
+                const jobsiteDs = new kendo.data.DataSource({
+                    transport: {
+                    read: {
+                        url:  "@Url.Action("GetJobsites", "ProductionScheduleIntervention")",
+                        dataType: "json"
+                    }
+                    },
+                    schema: { data: "data", total: "total" }
+                });
+
+                jobsiteDs.bind("requestEnd", function (e) {
+                    if (e.type !== "read") return;
+                    const id = e.response && e.response.defaultId;
+                    if (id) {
+                    const ddl = $("#jobsiteDdl").data("kendoDropDownList");
+                    if (ddl && !ddl._defaultApplied) {    
+                        ddl.value(id);
+                        ddl.trigger("change");
+                        ddl._defaultApplied = true;
+                        jobsiteReady = true;
+                        tryLoadGrid();
+                    }
+                    }
+                });
+
+                $("#jobsiteDdl").kendoDropDownList({
+                        ...ui,
+                    optionLabel: "Select Jobsite",
+                    dataTextField: "Jobsite",
+                    dataValueField: "JobsiteId",
+                    dataSource: jobsiteDs,
+                    change: function () { 
+                    jobsiteReady = !!this.value();
+                    tryLoadGrid(true);
+                    }
+                });
+
+                // Processes
+                const processDs = new kendo.data.DataSource({
+                    transport: {
+                    read: {
+                        url:"@Url.Action("GetProcess", "ProductionScheduleIntervention")",
+                        dataType: "json"
+                    }
+                    },
+                    schema: { data: "data", total: "total" }
+                });
+
+                processDs.bind("requestEnd", function (e) {
+                    if (e.type !== "read") return;
+                    const id = e.response && e.response.defaultId;
+                    if (id) {
+                    const ddl = $("#processDdl").data("kendoDropDownList");
+                    if (ddl && !ddl._defaultApplied) {
+                        ddl.value(id);
+                        ddl.trigger("change");
+                        ddl._defaultApplied = true;
+                        processReady = true;
+                        tryLoadGrid();
+                    }
+                    }
+                });
+
+                $("#processDdl").kendoDropDownList({
+                        ...ui,
+                    optionLabel: "Select Process",
+                    dataTextField: "Process",
+                    dataValueField: "ProcessId",
+                    dataSource: processDs,
+                    change: function () {
+                    processReady = !!this.value();
+                    tryLoadGrid(true);
+                    }
+                });
+             
+                const jobDd = $("#jobsiteDdl").data("kendoDropDownList");
+                const procDd = $("#processDdl").data("kendoDropDownList");
+
+                const ds = new kendo.data.DataSource({
+                    transport: {
+                    read: {
+                        url: "@Url.Action("GetInterventions", "ProductionScheduleIntervention")",
+                        dataType: "json",
+                        data: function () {
+                        return {
+                            headerId: headerId,
+                            jobsiteId: jobDd?.value(),
+                            processId: procDd?.value()
+                        };
+                        }
+                    }
+                    },
+                    schema: { data: "data", total: "total" }
+                });
+
+                $("#grid").kendoGrid({
+                    dataSource: ds,
+                    height: 560,
+                    sortable: false,
+                    toolbar: [
+                            { type: "button", text: "Download", click: openProdSchedDownloadDialog, className: "k-grid-btn" },
+                            { type: "button", text: "Upload", click: openProdSchedUploadDialog, className: "k-grid-btn" },
+                            { name: "search" }
+                            ],
+                    filterable: false,
+                    resizable: true,
+                    scrollable: true,
+                    columns: [
+                      { field: "Parameter", title: "", width: 180, locked: true, lockable: false },
+                      { field: "January",   title: "January",   width: 110, format: "{0:n2}" },
+                      { field: "February",  title: "February",  width: 110, format: "{0:n2}" },
+                      { field: "March",     title: "March",     width: 110, format: "{0:n2}" },
+                      { field: "April",     title: "April",     width: 110, format: "{0:n2}" },
+                      { field: "May",       title: "May",       width: 110, format: "{0:n2}" },
+                      { field: "June",      title: "June",      width: 110, format: "{0:n2}" },
+                      { field: "July",      title: "July",      width: 110, format: "{0:n2}" },
+                      { field: "August",    title: "August",    width: 110, format: "{0:n2}" },
+                      { field: "September", title: "September", width: 120, format: "{0:n2}" },
+                      { field: "October",   title: "October",   width: 110, format: "{0:n2}" },
+                      { field: "November",  title: "November",  width: 120, format: "{0:n2}" },
+                      { field: "December",  title: "December",  width: 120, format: "{0:n2}" },
+                      { field: "FY",        title: "FY",        width: 100,  format: "{0:n2}" }
+                    ]
+                });
+    
+
+                function tryLoadGrid(force = false) {
+                  const jobDd  = $("#jobsiteDdl").data("kendoDropDownList");
+                  const procDd = $("#processDdl").data("kendoDropDownList");
+                  const haveVals = jobDd?.value() && procDd?.value();
+
+                  if ((haveVals && !firstLoadDone) || (force && haveVals)) {
+                    $("#grid").data("kendoGrid").dataSource.read();
+                    firstLoadDone = true;
+                  }
+                }
+            });
+        });
+    });
+
+     function openProdSchedDownloadDialog() {
+        var headerId = $("#hdr").val();
+        var mbrVersion = $("#mbr").val();
+        var wnd = $("#prodSchedDownloadWindow").kendoWindow({
+            title: "Download",
+            modal: true,
+            visible: false,
+            width: 400,
+            actions: ["Close"],
+            position: { top: "20%", left: "center" },
+            open: function () { this.center(); }
+        }).data("kendoWindow");
+        wnd.refresh({
+            url: "@Url.Action("DownloadDialog", "ProductionScheduleIntervention")",
+            data: { headerId: headerId, mbrVersion: mbrVersion } 
+        });
+
+        wnd.center().open();
+
+     }
+
+    function openProdSchedUploadDialog() {
+        $("#prodSchedUploadWindow").kendoWindow({
+            title: "Upload",
+            modal: true,
+            visible: false,
+            width: "400px",
+            content: {
+               url:"@Url.Action("UploadDialog", "ProductionScheduleIntervention")"
+            },
+            actions: ["Close"],
+            position: { top: "20%", left: "center" },
+            open: function () {
+                this.center();
+            }
+        }).data("kendoWindow").center().open();
+
+    }
+
+    window.notifyUploadSuccess = function (res) {
+        notif(res?.message || "Upload processed", "success");
+        $("#prodSchedGrid").data("kendoGrid")?.dataSource.read();
+    };
+    window.notifyUploadError= function (res) {
+        notif(res?.message || "Upload Failed",  "error");
+        $("#prodSchedGrid").data("kendoGrid")?.dataSource.read();
+    };
+</script>

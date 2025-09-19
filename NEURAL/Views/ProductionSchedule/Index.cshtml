@@ -1,0 +1,336 @@
+﻿@{
+    ViewBag.Title = "PRODUCTION SCHEDULE";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .ps-stepper {
+        --step-count: 6;
+        --gap: 28px;
+        display: grid;
+        grid-template-columns: repeat(var(--step-count), 1fr);
+        align-items: center;
+        column-gap: var(--gap);
+        padding: 6px 0;
+        user-select: none;
+        font-family: inherit;
+    }
+
+    .ps-step {
+        position: relative;
+        display: grid;
+        justify-items: center;
+        text-align: center;
+        min-width: 0; 
+    }
+        .ps-step::before {
+            content: "";
+            position: absolute;
+            top: 8px; 
+            left: calc(-50% - var(--gap)/2);
+            width: calc(100% + var(--gap));
+            height: 4px;
+            background: #d7dbe0;
+            z-index: 0;
+        }
+
+        .ps-step:first-child::before {
+            display: none;
+        }
+
+    /* Dot */
+    .ps-dot {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #d7dbe0;
+        border: 2px solid #d7dbe0;
+        display: grid;
+        place-items: center;
+        z-index: 1;
+        font-size: 9px;
+        line-height: 1;
+        color: #fff;
+    }
+
+    /* Label */
+    .ps-label {
+        margin-top: 6px;
+        font-size: 9px;
+        color: #5f6b7a;
+        white-space: nowrap; 
+    }
+
+    /* States */
+    .ps-step.OK .ps-dot {
+        background: #1a73e8;
+        border-color: #1a73e8;
+    }
+
+    .ps-step.OK::before {
+        background: #1a73e8;
+    }
+
+    .ps-step.current .ps-dot {
+        background: #fff;
+        border-color: #1a73e8;
+        color: #1a73e8;
+    }
+
+    .ps-step.ERROR .ps-dot {
+        background: #e53935;
+        border-color: #e53935;
+    }
+       
+    .ps-step.ERROR::before {
+        background: #d7dbe0;
+    }
+
+    .ps-step:hover .ps-label {
+        color: #22303d;
+    }
+ 
+    .ps-step.success .ps-dot {
+        background: #28a745; 
+        border-color: #28a745;
+    }
+
+    .ps-step.success::before {
+        background: #1a73e8;
+    }
+
+    .ps-step.success::after {
+        background: #28a745;
+    }
+
+    .ps-step.success .ps-label {
+        color: #28a745; 
+    }
+
+    .row-actions {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+        align-items: center;
+    }
+
+
+</style>
+   
+<span id="popupNotification"></span>
+<div id="prodSchedGrid"></div>
+<div id="prodSchedUploadWindow" style="display: none;"></div>
+
+
+<script id="stepper-template" type="text/x-kendo-template">
+    #= buildStepper(Progress) #
+</script>
+
+<script>
+    const STEP_LABELS = [
+        "Monthly Fleet",
+        "Daily Fleet",
+        "Daily Process",
+        "Monthly Process",
+        "Yearly Process",
+        "Yearly Fleet",
+        "Success"
+    ];
+
+   
+    window.buildStepper = function(states){
+           
+        const regularCount = STEP_LABELS.length - 1; 
+        const s = (states || []).slice(0, regularCount);
+        while (s.length < regularCount) s.push("pending");
+
+        let successState = "pending";
+        if (s.every(v => v === "OK")) successState = "success";
+     
+        s.push(successState);
+
+        const iconFor = st =>
+        st === "OK" || st === "success" ? "&#10003;" :   
+        st === "ERROR"               ? "&#8226;"  :      
+        st === "current"             ? "&#9675;"  : "";  
+
+        let html = `<div class="ps-stepper" style="--step-count:${s.length}">`;
+        for (let i = 0; i < s.length; i++) {
+        html += `
+            <div class="ps-step ${s[i]}">
+            <div class="ps-dot">${iconFor(s[i])}</div>
+            <div class="ps-label">${kendo.htmlEncode(STEP_LABELS[i])}</div>
+            </div>`;
+        }
+        html += `</div>`;
+            return html;
+    };
+
+
+    var isReadOnly;
+    var serviceBaseUrl        = '@Url.Action("GetHeaders", "ProductionSchedule")';
+    var serviceDeleteBaseUrl  = '@Url.Action("Delete", "ProductionSchedule")';
+
+        $(document).ready(function () {
+        getMenuAccess().done(function (noAccess) {
+        if (noAccess) { window.location.href = "../Home/Index"; return; }
+
+            getMenuIsReadOnly().done(function (dataRead) {
+                isReadOnly   = dataRead;
+       
+
+                var dataSource = new kendo.data.DataSource({
+                transport: {
+                    read: { url: serviceBaseUrl, dataType: "json", type: "GET" },
+                    destroy:  { url: serviceDeleteBaseUrl, dataType: "json",type: "POST" },
+                    parameterMap: function (data, type) {
+                    if (type === "destroy") return { id: data.Id }; 
+                     return data;
+                    }
+                },
+                schema: {
+                    data: "data",
+                    total: "total",
+                    model: {
+                        id: "Id",
+                        fields: {
+                            Id: { type: "number" },
+                            MbrVersion: { type: "string" },
+                            Year: { type: "string" },
+                            DocumentName: { type: "string" },
+                            VersionName: { type: "string" },
+                            Progress: { }
+                        }
+                    }
+                },
+                pageSize: 10,
+                autoSync: true
+                });
+
+                function isError(d)   { return (d.Status || "").toUpperCase() === "ERROR"; }
+                function isPending(d) { return (d.Status || "").toUpperCase() === "PENDING"; }
+                function isSuccess(d) { return (d.Status || "").toUpperCase() === "SUCCESS"; }
+                var grid = $("#prodSchedGrid").kendoGrid({
+                  dataSource: dataSource,
+                  pageable: { refresh: true, pageSizes: true, buttonCount: 5, messages: { refresh: "Refresh" } },
+                  sortable: true,
+                  editable: { mode: "inline", confirmation: "Delete this item?" },
+                  toolbar: [
+                    { type: "button", text: "Upload", click: openProdSchedUploadDialog, className: "k-grid-btn" },
+                    { type: "button", text: "Pivot ProdSched", click: goToPivotProdSched, className: "k-grid-btn" },
+                    { name: "search" }
+                  ],
+                  columns: [
+                    { field: "MbrVersion", title: "Version", width: 80 },
+                    { field: "Year",       title: "Year",    width: 80 },
+                    { field: "DocumentName", title: "Document Name", width: 170 },
+                    { field: "VersionName",  title: "Version Name",  width: 170 },
+                    { field: "Progress", title: "Progress", width: 480, encoded: false,
+                      template: kendo.template($("#stepper-template").html()) },
+                    {
+                      title: "&nbsp;", width: 140,
+                      command: [
+                        { name: "download", text: "", iconClass: "k-icon k-i-download", click: onDownload },
+                        { name: "editRow", text: "", iconClass: "k-icon k-i-change-manually", click: onEdit,
+                          visible: d => isSuccess(d) },
+                        { name: "downloadExtra", text: "", iconClass: "k-icon k-i-track-changes-reject-all", click: onExtraDownload,
+                          visible: d => isError(d) },
+                        { name: "destroy", text: "", iconClass: "k-icon k-i-trash", visible: d => isSuccess(d) }
+                      ]
+                    }
+                  ]
+                }).data("kendoGrid");
+
+                var ds = grid.dataSource;
+
+                ds.bind("requestStart", function () {
+                  kendo.ui.progress(grid.wrapper, true);
+                });
+                ds.bind("requestEnd", function (e) {
+                  kendo.ui.progress(grid.wrapper, false);
+                     if (e.type === "destroy") {
+                      var resp = e.response || {};
+                      var ok = resp.success === true || resp.ok === true; 
+                      var msg = resp.message;
+
+                      notif(msg, ok ? "success" : "error");
+                      lastDeleted = null;
+
+                    }
+                });
+                ds.bind("error", function (e) {
+                  kendo.ui.progress(grid.wrapper, false);
+                  var serverMsg = e.xhr && (e.xhr.responseJSON?.message || e.xhr.responseText);
+                  notif(serverMsg, "error");
+                });
+
+                ds.fetch();
+                });
+            });
+         });
+
+
+    function onDownload(e){
+        var item = this.dataItem($(e.currentTarget).closest("tr"));
+        console.log("Download item.Id:", item.Id); 
+        window.location = "@Url.Action("Download", "ProductionSchedule")" + "?id=" + encodeURIComponent(item.Id);
+    }
+    function onExtraDownload(e){
+        var item = this.dataItem($(e.currentTarget).closest("tr"));
+        console.log("Download item.Id:", item.Id);
+        window.location = "@Url.Action("DownloadError", "ProductionSchedule")" + "?id=" + encodeURIComponent(item.Id);
+    }
+    function onEdit(e){
+        e.preventDefault();
+        const grid = this;
+        const item = grid.dataItem($(e.currentTarget).closest("tr"));
+
+        const headerId = item.Id
+        const mbrVersion = item.MbrVersion;
+        const Year = item.Year;
+        if (!headerId) { alert("HeaderId not found."); return; }
+
+        const url = '@Url.Action("Index", "ProductionScheduleIntervention")' +
+                    '?headerId=' + encodeURIComponent(headerId)+
+                    '&mbrVersion=' + encodeURIComponent(mbrVersion)+
+                    '&Year=' + encodeURIComponent(Year);
+        window.location.href = url;
+    }
+    function onDelete(e){
+        var item = this.dataItem($(e.currentTarget).closest("tr"));
+        if (confirm("Are you sure you want to delete this record?")) {
+            deleteHeader(item.Id, this); 
+        }
+    }
+
+    window.notifyUploadSuccess = function (res) {
+        notif(res?.message || "Upload processed", "success");
+        $("#prodSchedGrid").data("kendoGrid")?.dataSource.read();
+    };
+    window.notifyUploadError= function (res) {
+        notif(res?.message || "Upload Failed",  "error");
+        $("#prodSchedGrid").data("kendoGrid")?.dataSource.read();
+    };
+    function openProdSchedUploadDialog() {
+        $("#prodSchedUploadWindow").kendoWindow({
+            title: "Upload",
+            modal: true,
+            visible: false,
+            width: "400px",
+            content: {
+               url: "@Url.Action("UploadDialog", "ProductionSchedule")"
+            },
+            actions: ["Close"],
+            position: { top: "20%", left: "center" },
+            open: function () {
+                this.center();
+            }
+        }).data("kendoWindow").center().open();
+
+    }
+
+    function goToPivotProdSched(e) {
+        window.location.href = "@Url.Action("Index", "ProductionSchedulePivot")";
+    }
+
+</script>

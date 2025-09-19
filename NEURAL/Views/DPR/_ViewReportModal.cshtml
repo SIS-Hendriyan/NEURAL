@@ -1,0 +1,224 @@
+﻿<!-- View Report Modal -->
+<div class="modal fade" id="viewReportModal" tabindex="-1" aria-labelledby="viewReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                <h5 class="modal-title" id="viewReportModalLabel">
+                    <i class="k-icon k-i-file-txt"></i> DPR Report
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Report Header -->
+                <div class="row mb-4 p-3" style="background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Jobsite</label>
+                        <div id="reportJobsite" class="fs-6 fw-semibold"></div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Date</label>
+                        <div id="reportDate" class="fs-6"></div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">MBR Version</label>
+                        <div id="reportMBRVersion" class="fs-6"></div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Estimated Truck Count</label>
+                        <div id="reportTruckCount" class="fs-6"></div>
+                    </div>
+                </div>
+
+                <!-- Report Statistics -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card border-0" style="background-color: #dbeafe;">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Elapsed Days</h6>
+                                <div id="reportElapsedDays" class="fs-4 fw-bold text-primary"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-0" style="background-color: #fed7aa;">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Remaining Days</h6>
+                                <div id="reportRemainingDays" class="fs-4 fw-bold text-warning"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROM Capacity Table -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3">ROM Capacity Analysis</h6>
+                    <div id="reportActivitiesGrid"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary-custom" onclick="exportReport()">
+                    <i class="k-icon k-i-download"></i> Export Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showReportData(reportData) {
+        // Populate report header
+        $("#reportJobsite").text(reportData.Jobsite);
+        $("#reportDate").text(formatDate(reportData.Date));
+        $("#reportMBRVersion").text(reportData.MBRVersion);
+        $("#reportTruckCount").text(reportData.EstimatedTruckCount);
+        $("#reportElapsedDays").text(reportData.ElapsedDays);
+        $("#reportRemainingDays").text(reportData.RemainingDays);
+
+        // Initialize activities grid
+        $("#reportActivitiesGrid").kendoGrid({
+            dataSource: {
+                data: reportData.Activities,
+                group: { field: "Category" }
+            },
+            columns: [
+                {
+                    field: "Activity",
+                    title: "Activity",
+                    width: "200px",
+                    template: function(dataItem) {
+                        return '<div class="fw-semibold">' + dataItem.Activity + '</div>';
+                    }
+                },
+                {
+                    title: "Daily",
+                    columns: [
+                        {
+                            field: "Daily.Actual",
+                            title: "Actual",
+                            width: "100px",
+                            format: "{0:n0}",
+                            attributes: { style: "text-align: center;" }
+                        },
+                        {
+                            field: "Daily.Plan",
+                            title: "Plan",
+                            width: "100px",
+                            format: "{0:n0}",
+                            attributes: { style: "text-align: center;" }
+                        },
+                        {
+                            field: "Daily.Achievement",
+                            title: "Achievement %",
+                            width: "120px",
+                            template: function(dataItem) {
+                                return getAchievementTemplate(dataItem.Daily.Achievement, dataItem.Daily.Status);
+                            },
+                            attributes: { style: "text-align: center;" }
+                        }
+                    ]
+                },
+                {
+                    title: "MTD",
+                    columns: [
+                        {
+                            field: "MTD.Actual",
+                            title: "Actual",
+                            width: "100px",
+                            format: "{0:n0}",
+                            attributes: { style: "text-align: center;" }
+                        },
+                        {
+                            field: "MTD.Plan",
+                            title: "Plan",
+                            width: "100px",
+                            format: "{0:n0}",
+                            attributes: { style: "text-align: center;" }
+                        },
+                        {
+                            field: "MTD.Achievement",
+                            title: "Achievement %",
+                            width: "120px",
+                            template: function(dataItem) {
+                                return getAchievementTemplate(dataItem.MTD.Achievement, dataItem.MTD.Status);
+                            },
+                            attributes: { style: "text-align: center;" }
+                        }
+                    ]
+                },
+                {
+                    title: "YTD",
+                    columns: [
+                        {
+                            field: "YTD.Actual",
+                            title: "Actual",
+                            width: "100px",
+                            format: "{0:n0}",
+                            attributes: { style: "text-align: center;" }
+                        },
+                        {
+                            field: "YTD.Plan",
+                            title: "Plan",
+                            width: "100px",
+                            format: "{0:n0}",
+                            attributes: { style: "text-align: center;" }
+                        },
+                        {
+                            field: "YTD.Achievement",
+                            title: "Achievement %",
+                            width: "120px",
+                            template: function(dataItem) {
+                                return getAchievementTemplate(dataItem.YTD.Achievement, dataItem.YTD.Status);
+                            },
+                            attributes: { style: "text-align: center;" }
+                        },
+                        {
+                            field: "YTD.Deviation",
+                            title: "Deviation",
+                            width: "100px",
+                            template: function(dataItem) {
+                                if (dataItem.YTD.Deviation !== undefined) {
+                                    var deviation = dataItem.YTD.Deviation;
+                                    var color = deviation >= 0 ? 'text-success' : 'text-danger';
+                                    var sign = deviation >= 0 ? '+' : '';
+                                    return '<span class="' + color + ' fw-bold">' + sign + kendo.toString(deviation, "n0") + '</span>';
+                                }
+                                return '-';
+                            },
+                            attributes: { style: "text-align: center;" }
+                        }
+                    ]
+                }
+            ],
+            height: 400,
+            scrollable: true,
+            groupable: false,
+            sortable: true
+        });
+    }
+
+    function getAchievementTemplate(achievement, status) {
+        var badgeClass = '';
+        switch (status) {
+            case 'good':
+                badgeClass = 'bg-success';
+                break;
+            case 'warning':
+                badgeClass = 'bg-warning';
+                break;
+            case 'critical':
+                badgeClass = 'bg-danger';
+                break;
+            default:
+                badgeClass = 'bg-secondary';
+        }
+
+        return '<span class="badge ' + badgeClass + ' text-white fw-bold">' + achievement + '%</span>';
+    }
+
+    function exportReport() {
+        var grid = $("#reportActivitiesGrid").data("kendoGrid");
+        grid.saveAsExcel();
+        showNotification("Report exported successfully", "success");
+    }
+</script>

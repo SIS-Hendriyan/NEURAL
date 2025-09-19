@@ -1,0 +1,154 @@
+﻿@{
+    ViewData["Title"] = "Menu";
+    ViewData["Menu"] = "Menu";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+    <div class="wrapper" id="example">
+        <span id="popupNotification"></span>
+        <div id="grid"></div>
+
+        <script>
+            var isReadOnly;
+            var crudServiceBaseUrl;
+            var models = [];
+            var dataGroup;
+            var dataJobsite;
+
+            $(document).ready(function () {
+                getMenuAccess().done(function (noAccess) {
+                    if (noAccess) {
+                        window.location.href = "../Home/Index";
+                    } else {
+                        getMenuIsReadOnly().done(function (dataRead) {
+                            isReadOnly = dataRead;
+                            crudServiceBaseUrl = getBasicUrl() + "/CRUD";
+
+                            dataMenu = new kendo.data.DataSource({
+                                transport: {
+                                    read: {
+                                        url: "../Menu/CRUD",
+                                        dataType: "json"
+                                    },
+                                    parameterMap: function (options, operation) {
+                                        return { data: "", ket: "READ" };
+                                    }
+                                }
+                            });
+
+                            dataSource = new kendo.data.DataSource({
+                                transport: {
+                                    read: {
+                                        url: crudServiceBaseUrl,
+                                        dataType: "json",
+                                        type: "post"
+                                    },
+                                    update: {
+                                        url: crudServiceBaseUrl,
+                                        dataType: "json",
+                                        type: "post"
+                                    },
+                                    destroy: {
+                                        url: crudServiceBaseUrl,
+                                        dataType: "json",
+                                        type: "post"
+                                    },
+                                    create: {
+                                        url: crudServiceBaseUrl,
+                                        dataType: "json",
+                                        type: "post"
+                                    },
+                                    parameterMap: function (options, operation) {
+                                        if (operation == "create" && options.models) {
+                                            return { data: kendo.stringify(options.models), ket: "CREATE" };
+                                        } else if (operation == "read") {
+                                            return { data: "", ket: "READ" };
+                                        } else if (operation == "update" && options.models) {
+                                            return { data: kendo.stringify(options.models), ket: "UPDATE" };
+                                        } else if (operation == "destroy" && options.models) {
+                                            return { data: kendo.stringify(options.models), ket: "DELETE" };
+                                        }
+                                    }
+                                },
+                                batch: true,
+                                pageSize: 10,
+                                schema: {
+                                    model: {
+                                        id: "MENU_ID",
+                                        fields: {
+                                            MENU_ID: { editable: false, nullable: true },
+                                            MENU: { validation: { required: true } },
+                                            URL: { validation: { required: true } },
+                                            PARENT_ID: "PARENT_ID"
+                                        }
+                                    }
+                                }
+                            });
+                            $("#grid").kendoGrid({
+                                dataSource: dataSource,
+                                pageable: {
+                                    refresh: true,
+                                    pageSizes: true,
+                                    buttonCount: 10
+                                },
+                                toolbar: function () {
+                                    if (!isReadOnly) {
+                                        return '<button data-role="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base k-toolbar-button k-grid-add" type="button" role="button" aria-disabled="false" tabindex="0" data-uid="b67b53a8-61fe-4d1d-814e-1f0e1905427e" ref-toolbar-tool=""><span class="k-icon k-svg-icon k-svg-i-plus k-button-icon"><svg viewBox="0 0 512 512" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M288 224V96h-64v128H96v64h128v128h64V288h128v-64z"></path></svg></span><span class="k-button-text">Add</span></button>';
+                                    }
+                                    return [];
+                                },
+                                columns: [
+                                    { field: "MENU", title: "Menu", width: 100 },
+                                    { field: "URL", title: "URL", width: 200 },
+                                    {
+                                        field: "PARENT", title: "Parent", width: 150,
+                                        editor: function (container) {
+                                            var input = $('<input id="PARENT_ID" name="PARENT_ID">');
+                                            input.appendTo(container);
+                                            input.kendoDropDownList({
+                                                dataTextField: "MENU",
+                                                dataValueField: "MENU_ID",
+                                                optionLabel: "Select Parent",
+                                                filter: "startswith",
+                                                dataSource: dataMenu
+                                            }).appendTo(container);
+                                        }
+                                    },
+                                    { command: ["edit", "destroy"], title: "&nbsp;", width: "250px", hidden: isReadOnly }
+                                ],
+                                editable: "popup"
+                            });
+
+                            dataSource.bind("requestEnd", onRequestEnd);
+                            dataSource.fetch();
+                        });
+                    }
+                });
+            });
+
+            function onRequestEnd(e) {
+                if (e.type != "read") {
+                    var popupNotification = $("#popupNotification").kendoNotification().data("kendoNotification");
+                    //alert(e.response.status);
+                    if (e.response.status == 'success') {
+                        popupNotification.show(e.response.text, "success");
+                    } else {
+                        popupNotification.show(e.response.text, "error");
+                    }
+                    e.sender.read();
+                }
+            }
+
+            function viewApps(div, divList) {
+                window.location.href = "../Home/Index";
+            }
+
+        </script>
+    </div>
+</body>
+</html>

@@ -1,0 +1,878 @@
+﻿@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - NEURA</title>
+
+    <link href="../../@Html.Raw(ViewBag.AppName)/assets/css/11.0.2/material-main.css" rel="stylesheet" />
+    <link href="https://kendo.cdn.telerik.com/themes/11.0.2/default/default-main.css" rel="stylesheet" />
+
+    <script src="../../@Html.Raw(ViewBag.AppName)/assets/js/jquery-3.7.0.min.js"></script>
+    <script src="../../@Html.Raw(ViewBag.AppName)/assets/js/2025.3.825/kendo.all.min.js"></script>
+    <script src="../../@Html.Raw(ViewBag.AppName)/assets/js/2025.3.825/kendo-ui-license.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- App favicon -->
+    <link rel="shortcut icon" href="../../@Html.Raw(ViewBag.AppName)/assets/img/logo_favicon_v1.png">
+
+    <!-- Bootstrap Css -->
+    <link href="../../@Html.Raw(ViewBag.AppName)/skote/assets/css/bootstrap.min.css" id="bootstrap-style" rel="stylesheet" type="text/css" />
+    <!-- Icons Css -->
+    <link href="../../@Html.Raw(ViewBag.AppName)/skote/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+    <!-- App Css-->
+    <link href="../../@Html.Raw(ViewBag.AppName)/skote/assets/css/app.min.css" id="app-style" rel="stylesheet" type="text/css" />
+
+    <style>
+        .logo-adaro-align {
+            text-align: center;
+        }
+
+        .logo-imore {
+            height: 30px;
+        }
+
+        .align-content-center {
+            align-content: center;
+        }
+
+        .vertical-collpsed {
+            min-height: 100% !important;
+        }
+
+        #page-topbar {
+            background-color: #ffffff !important;
+        }
+
+        .footer {
+            background-color: #ffffff !important;
+        }
+
+        body[data-sidebar=dark] .menu-title {
+            color: #ffffff;
+        }
+
+        body[data-sidebar=dark] #sidebar-menu ul li ul.sub-menu li a {
+            color: #a7a7a7;
+        }
+
+        .height-100vh {
+            height: 100vh;
+        }
+
+        .vertical-center {
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            -ms-transform: translateY(-50%);
+            transform: translateY(-50%);
+            width: 80%
+        }
+
+        #sidebar-menu ul li a {
+            font-size: 16px;
+            font-family: sans-serif;
+        }
+
+        #sidebar-menu ul li ul.sub-menu li a {
+            font-size: 16px;
+        }
+
+        .header-profile-user {
+            background-color: #f6f6f600;
+        }
+
+        .header-item {
+            color: #55586d;
+        }
+
+        .noti-icon i {
+            color: #ffffff;
+        }
+
+        .header-item:hover {
+            color: #afafaf;
+        }
+
+        .navbar-header .dropdown .show.header-item {
+            background-color: #f8f9fa00;
+        }
+
+        body[data-sidebar=dark] .navbar-brand-box {
+            background: #ffffff00;
+        }
+
+        .left-menu-custom.mm-active {
+            /*border: 2px solid #333;*/
+            border-radius: 10px;
+            background-color: #148484;
+            /*padding: 10px;*/
+            width: 90% !important;
+            margin: 5px;
+        }
+
+        .vertical-collpsed .vertical-menu {
+            width: 80px !important;
+        }
+
+        body[data-sidebar=dark] .vertical-menu {
+            background: #ffffff00;
+        }
+
+        .vertical-collpsed .navbar-brand-box {
+            width: 80px !important;
+        }
+
+        body[data-sidebar=dark] .menu-title {
+            color: #5C5E64;
+        }
+
+        body[data-sidebar=dark].vertical-collpsed .vertical-menu #sidebar-menu > ul > li:hover > a {
+            background: #148484;
+            border-radius: 10px;
+        }
+
+        body[data-sidebar=dark].vertical-collpsed .vertical-menu #sidebar-menu > ul ul {
+            background-color: #148484;
+        }
+
+        body[data-sidebar=dark] #sidebar-menu ul li a i {
+            color: #5C5E64;
+        }
+
+        body[data-sidebar=dark] #sidebar-menu ul li a {
+            color: #5C5E64;
+        }
+
+        body[data-sidebar=dark] #sidebar-menu ul li a:hover {
+            color: #5C5E64;
+        }
+
+        body[data-sidebar=dark] #sidebar-menu ul li a:hover i {
+            color: #5C5E64;
+        }
+
+        body[data-sidebar=dark].vertical-collpsed .vertical-menu #sidebar-menu > ul > li:hover > ul a {
+            color: #a7a7a7;
+        }
+
+        .fa-bars {
+            content: "\f0c9";
+        }
+
+        /* Default: span tetap tampil */
+        #page-header-user-dropdown span[key="t-name"] {
+            display: inline-block !important;
+        }
+
+        /* Kalau body ada class sidebar-enable vertical-collpsed, sembunyikan span */
+        body.sidebar-enable.vertical-collpsed #page-header-user-dropdown span[key="t-name"] {
+            display: none !important;
+        }
+
+        /* Default kalau body tidak punya class */
+        body:not(.sidebar-enable):not(.vertical-collpsed) .dropdown {
+            text-align: left !important;
+        }
+
+        /* Kalau body punya class sidebar-enable dan vertical-collpsed */
+        body.sidebar-enable.vertical-collpsed .dropdown {
+            text-align: center !important;
+        }
+
+        .fixed-bottom-left {
+            position: fixed;
+            bottom: 0px;
+            left: 0px;
+            border-left: 2px solid #D9D9D9;
+            border-right: 2px solid #D9D9D9;
+            border-bottom: 2px solid #D9D9D9;
+            border-top: none;
+            border-radius: 0px 0px 10px 0px;
+            background: #fafafa !important;
+            z-index: 9999;
+            padding: 0px;
+        }
+
+        /* Default (tanpa class apapun di body) → tampil logo besar */
+        body .logo-sm {
+            display: none;
+            padding: 10px;
+        }
+
+        body .logo-lg {
+            display: inline-block;
+            padding: 10px;
+        }
+
+        /* Jika body punya class "sidebar-enable vertical-collpsed" → tampil logo kecil */
+        body.sidebar-enable.vertical-collpsed .logo-sm {
+            display: inline-block;
+        }
+
+        body.sidebar-enable.vertical-collpsed .logo-lg {
+            display: none;
+        }
+
+        .vertical-collpsed .footer {
+            left: 80px;
+            border-top: 0.1px solid #B3B3B3;
+        }
+
+        .app-card {
+            display: inline-block;
+            width: 120px; /* samakan lebar semua card */
+            text-align: center;
+            text-decoration: none;
+            color: #000;
+            vertical-align: top; /* supaya semua sejajar atas */
+            margin: 20px;
+        }
+
+        .icon-container {
+            position: relative; /* penting agar info-icon bisa absolute di dalamnya */
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+            border-radius: 30px 0px 30px 0; /* sudut sesuai gambar contoh */
+            background: linear-gradient(180deg, #009688, #003049);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-container-Information {
+            position: relative; /* penting agar info-icon bisa absolute di dalamnya */
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+            border-radius: 30px 0px 30px 0; /* sudut sesuai gambar contoh */
+            background: linear-gradient(180deg, #E7B658, #EC6E31);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-container-SeeAll {
+            position: relative; /* penting agar info-icon bisa absolute di dalamnya */
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+            border-radius: 30px 0px 30px 0; /* sudut sesuai gambar contoh */
+            background: #B3B3B3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-container img {
+            /*width: 50%;
+            height: auto;*/
+            filter: brightness(0) invert(1); /* jadi putih kalau PNG hitam */
+        }
+
+        .info-icon {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #ffffff;
+            color: #C3C3C3;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .app-label {
+            /*margin-top: 8px;*/
+            margin: 10px auto;
+            font-size: 14px;
+            font-weight: 500;
+            display: block; /* lebih pas block daripada inline-block */
+            max-width: 11ch;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            word-wrap: break-word;
+            min-height: 2.8em; /* tinggi minimal untuk 2 baris teks */
+        }
+
+        .app-label-home {
+            display: inline-block;
+            max-width: 11ch;
+            white-space: normal; /* biar bisa turun ke bawah */
+            overflow: visible; /* biar tidak disembunyikan */
+            text-overflow: clip; /* hilangkan elipsis */
+            word-wrap: break-word; /* teks panjang bisa dibungkus */
+        }
+
+        .edit-link {
+            cursor: pointer;
+            color: #003049;
+            text-decoration: underline;
+        }
+
+        .navbar-brand-box {
+            padding: 0;
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px; /* jarak icon dan teks */
+            background-color: #178b8b; /* teal */
+            color: white !important;
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+            border-radius: 30px;
+            padding: 0 25px;
+            height: 50px; /* fix tinggi */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); /* shadow */
+        }
+
+        .logout-btn:hover {
+            background-color: #126f6f;
+            box-shadow: 0 6px 10px rgba(0,0,0,0.25); /* shadow lebih besar saat hover */
+        }
+
+        .logout-btn i {
+            font-size: 18px;
+            color: white !important;
+        }
+
+        .avatar-shadow {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.25); /* shadow lembut */
+            transition: box-shadow 0.3s ease;
+        }
+
+        .avatar-shadow:hover {
+            box-shadow: 0 6px 12px rgba(0,0,0,0.35); /* shadow lebih tebal saat hover */
+        }
+
+        .btn-primary {
+            color: #fff;
+            background-color: #126f6f;
+            border-color: #126f6f;
+        }
+
+        .k-button-solid-primary {
+            border-color: #126f6f;
+            color: #fff;
+            background-color: #126f6f;
+            background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, .02));
+        }
+
+        .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+            background-color: #178b8b;
+            color: white;
+        }
+
+        .select2-container--default .select2-results__option[aria-selected=true]:hover {
+            background-color: #178b8b;
+            color: #fff;
+        }
+
+        .k-pager-numbers .k-link.k-selected {
+            color: #fff;
+            background-color: #178b8b;
+        }
+
+        .k-list-item.k-selected, .k-selected.k-list-optionlabel {
+            color: #fff;
+            background-color: #178b8b;
+        }
+
+        .btn-primary:hover {
+            color: #fff;
+            background-color: #178b8b;
+            border-color: #178b8b;
+        }
+
+        .btn-primary.disabled, .btn-primary:disabled {
+            color: #fff;
+            background-color: #178b8b;
+            border-color: #178b8b;
+        }
+
+        .k-button-outline-primary:hover, .k-button-outline-primary.k-hover, .k-button-outline-primary:active, .k-button-outline-primary.k-active, .k-button-outline-primary.k-selected, .k-button-flat-primary:hover, .k-button-flat-primary.k-hover, .k-button-flat-primary:active, .k-button-flat-primary.k-active, .k-button-flat-primary.k-selected {
+            color: #178b8b;
+        }
+
+        .k-picker-solid:focus-within {
+            border-color: #178b8b;
+        }
+
+        .k-grid-btn {
+            background-color: #178b8b;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 12px;
+        }
+
+            .k-grid-btn:hover {
+                background-color: #178b8b;
+            }
+    </style>
+
+</head>
+
+<body data-sidebar="dark" class="sidebar-enable vertical-collpsed" style="background-color: #ffffff;">
+
+    <!-- Begin page -->
+    <div id="layout-wrapper">
+        <span id="popupNotification"></span>
+        <header id="page-topbar">
+            <div class="navbar-header">
+                <div class="d-flex">
+                    <!-- LOGO -->
+                    <div class="navbar-brand-box" style="background: #fafafa;border: 2px solid #D9D9D9;border-radius: 0px 10px 0px 0px;">
+                        <button type="button" class="btn btn-sm px-0 font-size-16 header-item waves-effect" id="vertical-menu-btn" style="margin-right: 20px;margin-left: 20px;">
+                            <i class="fa fa-fw fa-bars"></i>
+                            <!--<img src="../../@Html.Raw(ViewBag.AppName)/assets/img/logo_favicon_v1.png" alt="" height="60">-->
+                        </button>
+                    </div>
+
+                    <div style="height:74px; display:flex; align-items:center;">
+                        <!--<h1 style="color:#148484; margin:30px;">@ViewData["Title"]</h1>-->
+                        <img src="../../@Html.Raw(ViewBag.AppName)/assets/img/logo_alamtri_v9.png" alt="" width="auto" style="width: 100%;padding: 10px;height: 70%;">
+                    </div>
+                </div>
+
+                <div class="d-flex">
+                    <!--<div class="dropdown d-none d-lg-inline-block ms-1">
+                        <button type="button" class="btn header-item noti-icon waves-effect" data-bs-toggle="fullscreen">
+                            <i class="bx bx-fullscreen" style="color: black;"></i>
+                        </button>
+                    </div>-->
+
+                    <div class="dropdown d-inline-block">
+                        
+
+                        <button type="button" class="btn header-item waves-effect" id="page-header-user-dropdown"
+                                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <img class="rounded-circle header-profile-user avatar-shadow"
+                                 src="../../@Html.Raw(ViewBag.AppName)/skote/assets/images/users/icon_users_v2.png" alt="Header Avatar" style="height: 30px;width: 30px;">
+                            <!--<span class="d-none d-xl-inline-block ms-1" key="t-name">@Html.Raw(ViewBag.Name)</span>
+                            <i class="mdi mdi-chevron-down d-none d-xl-inline-block"></i>-->
+                        </button>
+
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <div class="dropdown-item" style="display: @Html.Raw(ViewBag.displayNRP)">
+                                <span>@Html.Raw(ViewBag.NRP)</span>
+                            </div>
+
+                            <a class="dropdown-item" style="display: @Html.Raw(ViewBag.displayBtnLogin)" href="@Url.Action("Login", "Login")"><i class="bx bx-power-off font-size-16 align-middle me-1"></i> <span key="t-login">Login</span></a>
+
+                            <div class="dropdown-divider" style="display: @Html.Raw(ViewBag.displayBtnSignOut)"></div>
+                            <a class="dropdown-item d-block" style="display: @Html.Raw(ViewBag.displayBtnSignOut)" href="javascript:changePassword();"><i class="bx bx-wrench font-size-16 align-middle me-1"></i> <span key="t-settings">Change Password</span></a>
+                            <a class="dropdown-item text-danger" style="display: @Html.Raw(ViewBag.displayBtnSignOut)" href="javascript:SignOut();"><i class="bx bx-power-off font-size-16 align-middle me-1 text-danger"></i> <span key="t-logout">Logout</span></a>
+
+                            <script type="text/javascript">
+                                function SignOut() {
+                                    var url = "../../@Html.Raw(ViewBag.AppName)/Login/SignOut";
+                                    $.ajax({
+                                        type: "POST",
+                                        url: url,
+                                        dataType: "json",
+                                        cache: false,
+                                        success: function (data) {
+                                            var status = data.text;
+                                            if (status == "Success") {
+                                                window.location.href = "../../@Html.Raw(ViewBag.AppName)/Login/Login";
+                                            } else {
+                                                alert(status);
+                                            }
+                                        },
+                                        error: function (data) {
+                                            alert(data.text);
+                                        }
+                                    })
+                                }
+                            </script>
+                        </div>
+                    </div>
+
+                    <div class="dropdown d-none d-lg-inline-block ms-1" style="display: flex !important; align-items: center;">
+                        <!--<button type="button" class="btn header-item noti-icon waves-effect" data-bs-toggle="fullscreen">
+                            <img src="../../@Html.Raw(ViewBag.AppName)/assets/img/logout_icon.png">Log Out
+                        </button>
+                        <button type="button" class="logout-btn" style="height: 40px;width: 40px;" onclick="SignOut();">
+                            <img src="../../@Html.Raw(ViewBag.AppName)/assets/img/logout_icon.png" style="height: 20px;">
+                        </button>-->
+                    </div>
+
+                    <!--<div class="dropdown d-inline-block d-lg-none ms-2">
+                        <img src="../../@Html.Raw(ViewBag.AppName)/assets/img/logo_alamtri_v9.png" alt="" width="auto" height="40">
+                    </div>
+
+                    <div class="dropdown d-none d-lg-inline-block ms-1">
+                        <img src="../../@Html.Raw(ViewBag.AppName)/assets/img/logo_alamtri_v9.png" alt="" width="auto" height="40">
+                    </div>-->
+                </div>
+            </div>
+        </header>
+
+        <!-- ========== Left Sidebar Start ========== -->
+        <div class="vertical-menu" id="leftMenu" style="position:fixed;">
+
+            <div data-simplebar class="h-100" style="background: #ffffff;border: 2px solid #D9D9D9;border-radius: 0px 0px 10px 0px;">
+
+                <!--- Sidemenu -->
+                <div id="sidebar-menu">
+                    @Html.Raw(ViewBag.RawMenu)
+                </div>
+
+                @* <div class="dropdown d-inline-block" style="width: 100% !important;">
+                    <button type="button" class="btn header-item waves-effect" id="page-header-user-dropdown"
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <img class="rounded-circle header-profile-user" src="../../@Html.Raw(ViewBag.AppName)/skote/assets/images/users/icon_users.png" alt="Header Avatar">
+                        <span class="d-none d-xl-inline-block ms-1" key="t-name">@Html.Raw(ViewBag.Name)</span>
+                    </button>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-item" style="display: @Html.Raw(ViewBag.displayBtnSignOut)">
+                            <span>@Html.Raw(ViewBag.NRP)</span>
+                        </div>
+
+                        <a class="dropdown-item" style="display: @Html.Raw(ViewBag.displayBtnLogin)" href="@Url.Action("Login", "Login")"><i class="bx bx-power-off font-size-16 align-middle me-1"></i> <span key="t-login">Login</span></a>
+
+                        <div class="dropdown-divider" style="display: @Html.Raw(ViewBag.displayBtnSignOut)"></div>
+                        <a class="dropdown-item d-block" style="display: @Html.Raw(ViewBag.displayBtnSignOut)" href="javascript:changePassword();"><i class="bx bx-wrench font-size-16 align-middle me-1"></i> <span key="t-settings">Change Password</span></a>
+                        <a class="dropdown-item text-danger" style="display: @Html.Raw(ViewBag.displayBtnSignOut)" href="javascript:SignOut();"><i class="bx bx-power-off font-size-16 align-middle me-1 text-danger"></i> <span key="t-logout">Logout</span></a>
+
+                        <script type="text/javascript">
+                            function SignOut() {
+                                var url = "../../@Html.Raw(ViewBag.AppName)/Login/SignOut";
+                                $.ajax({
+                                    type: "POST",
+                                    url: url,
+                                    dataType: "json",
+                                    cache: false,
+                                    success: function (data) {
+                                        var status = data.text;
+                                        if (status == "Success") {
+                                            window.location.href = "../../@Html.Raw(ViewBag.AppName)/Login/Login";
+                                        } else {
+                                            alert(status);
+                                        }
+                                    },
+                                    error: function (data) {
+                                        alert(data.text);
+                                    }
+                                })
+                            }
+                        </script>
+                    </div>
+                </div>*@
+
+                <!--<div class="d-flex">
+                    <div class="navbar-brand-box fixed-bottom-left">
+                        <span class="logo-sm">
+                            <img src="../../@Html.Raw(ViewBag.AppName)/assets/img/logo_favicon_v1.png" alt="" height="60">
+                        </span>
+                        <span class="logo-lg">
+                            <img src="../../@Html.Raw(ViewBag.AppName)/assets/img/logo_sisone_v1.png" alt="" width="auto" height="60">
+                        </span>
+                    </div>
+                </div>-->
+
+                <!-- Sidebar -->
+            </div>
+        </div>
+        <!-- Left Sidebar End -->
+        <!-- ============================================================== -->
+        <!-- Start right Content here -->
+        <!-- ============================================================== -->
+        <div class="main-content">
+
+            <div class="page-content">
+                <div class="container-fluid">
+                    @RenderBody()
+                    <!-- end row -->
+                </div>
+                <!-- container-fluid -->
+            </div>
+            <!-- End Page-content -->
+
+            <footer class="footer">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <script>document.write(new Date().getFullYear())</script> © <strong><span>PT SAPTAINDRA SEJATI</span></strong>. All Rights Reserved.
+                        </div>
+                        @* <div class="col-sm-2 logo-adaro-align align-content-center">
+                            <img src="../../@Html.Raw(ViewBag.AppName)/assets/img/imore_v1.png" alt="SISApps" class="logo-imore">
+                        </div> *@
+                        <div class="col-sm-6">
+                            <div class="text-sm-end d-sm-block">
+                                Version @Configuration.GetSection("version")["version"] @* | Release @Configuration.GetSection("version")["release"] *@
+                            </div>
+                            <div b-uttlp0bl4i="" class="text-sm-end d-sm-block" style="font-size: 10px;color: #8080805e;">
+                                Created By: IT Division
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+        <!-- end main content-->
+
+    </div>
+    <!-- END layout-wrapper -->
+    <!-- Right bar overlay-->
+    <div class="rightbar-overlay"></div>
+
+    <!-- JAVASCRIPT -->
+    <script src="../../../@Html.Raw(ViewBag.AppName)/skote/assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../../@Html.Raw(ViewBag.AppName)/skote/assets/libs/metismenu/metisMenu.min.js"></script>
+    <script src="../../@Html.Raw(ViewBag.AppName)/skote/assets/libs/simplebar/simplebar.min.js"></script>
+    <script src="../../@Html.Raw(ViewBag.AppName)/skote/assets/libs/node-waves/waves.min.js"></script>
+
+    <!-- App js -->
+    <script src="../../@Html.Raw(ViewBag.AppName)/skote/assets/js/app.js"></script>
+
+    <script src="../../@Html.Raw(ViewBag.AppName)/js/Global.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+
+
+@* @Html.Partial("_PartialView/_ChangePassword") *@
+
+<script>
+    function changePassword() {
+        window.location.href = "../ChangePassword/Index";
+    }
+
+    function changePasswordOld() {
+        //var stat = "SSO";
+        var username = getCookie("UserName");
+        //alert(username);
+        if (isNaN(username)) {
+            window.open('https://app-saptaindra.msappproxy.net/Rdweb/pages/en-US/Password.aspx', '_blank');
+        } else {
+            $(".formChangePassword").find("span.validateText").remove();
+            var viewModel = kendo.observable({
+                currentPass: "",
+                newPass: "",
+                retypePass: "",
+                savePassword: function (e) {
+                    var validator = $("#ChangePasswordForm").data("kendoValidator");
+                    if (validator.validate()) {
+                        data = [];
+                        e.preventDefault();
+                        data.push({
+                            currentPass: this.currentPass,
+                            newPass: this.newPass,
+                            retypePass: this.retypePass
+                        });
+                        updatePassword(data);
+                    }
+                }
+            });
+
+            kendo.bind($("#ChangePasswordModals"), viewModel);
+            $("#ChangePasswordModals .modal-title").text("Change Password");
+            ShowHideModal("ChangePasswordModals");
+        }
+    }
+
+    function updatePassword(data) {
+        var url = "../Login/changePassword";
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: {
+                data: kendo.stringify(data)
+            },
+            success: function (data) {
+                if (data.status === 'success') {
+                    notif(data.text, "success");
+                    ShowHideModal("ChangePasswordModals");
+                    window.location.href = "../Login/Login";
+                }
+                else {
+                    notif(data.text, "error");
+                }
+            },
+            error: function (data) {
+                notif(data.text, "error");
+            }
+        });
+    }
+
+    function ShowHideModal(modalName) {
+        if ($("#" + modalName + "").hasClass('show')) {
+            $("#" + modalName + "").modal('hide');
+        } else {
+            $("#" + modalName + "").modal('show');
+        }
+    }
+
+    function notif(text, status) {
+        var popupNotification = $("#popupNotification").kendoNotification({
+            position: {
+                pinned: true,
+                top: 30,
+                right: 30
+            },
+            autoHideAfter: 4000,
+            stacking: "down"
+
+        }).data("kendoNotification");
+        popupNotification.show(text, status);
+    }
+
+    function getCookie(cname) {
+        let name = cname + "=";
+        let decodedCookie = decodeURIComponent(document.cookie);
+        let ca = decodedCookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+
+    /*function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+            let date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
+    }
+
+    function getCookie(name) {
+        let nameEQ = name + "=";
+        let cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            let c = cookies[i].trim();
+            if (c.indexOf(nameEQ) === 0) {
+                return decodeURIComponent(c.substring(nameEQ.length, c.length));
+            }
+        }
+        return null;
+    }*/
+
+    function setCookiesLoginAs(nrpLoginAs, namaCookies) {
+        $.ajax({
+            url: "../../@Html.Raw(ViewBag.AppName)/Home/setCookiesLoginAs",
+            type: "GET",
+            data: {
+                nrpLoginAs: nrpLoginAs,
+                namaCookies: namaCookies
+            },
+            success: function (result) {
+                data = result.data;
+                console.log(result);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('error: ' + jqXHR.status);
+            }
+        });
+    }
+
+    function createLog(nameApps, ket) {
+        $.ajax({
+            url: "../../@Html.Raw(ViewBag.AppName)/Home/CR",
+            type: "GET",
+            data: {
+                application: nameApps,
+                ket: ket
+            },
+            success: function (result) {
+                data = result.data;
+                console.log(result);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('error: ' + jqXHR.status);
+            }
+        });
+    }
+
+    function cekUserApps(url, nameApps, nrpLoginAs, akronim) {
+        $.ajax({
+            url: "../../@Html.Raw(ViewBag.AppName)/Home/CEK_USER_APPS",
+            type: "GET",
+            data: {
+                NRP: nrpLoginAs,
+                AKRONIM: akronim
+            },
+            success: function (result) {
+                //return result;
+                //alert(result);
+                if (result == "true") {
+                    createLog(nameApps, "CREATE");
+                    setCookiesLoginAs(nrpLoginAs, "NRP_" + akronim);
+
+                    window.open(url, '_blank')
+                    ShowHideModal("loginAsModal");
+                } else {
+                    alert("NRP not found!");
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('error: ' + jqXHR.status);
+            }
+        });
+    }
+
+    function redirectToUrl(url, nameApps, loginAs, akronim, target) {
+        akronim = akronim.replace(/[^a-zA-Z0-9 ]/g, "").replace(/ /g, "");
+        document.getElementById("nrpLoginAs").value = "";
+        if (loginAs == "true") {
+            /*var viewModel = kendo.observable({
+                APP_ID: dataItem.APP_ID
+            });
+            kendo.bind($("#loginAsModal"), viewModel);
+            $("#loginAsModal .modal-title").text("Login As");*/
+            ShowHideModal("loginAsModal");
+
+            document.getElementById("btnLoginAs").onclick = function () {
+                let nrpLoginAs = document.getElementById("nrpLoginAs").value;
+                if (nrpLoginAs == "") {
+                    alert("NRP belum diisi!");
+                }else{
+                    cekUserApps(url, nameApps, nrpLoginAs, akronim);
+                }
+            };
+        }else {
+            createLog(nameApps, "CREATE");
+            setCookiesLoginAs("", "NRP_" + akronim);
+
+            window.open(url, target)
+        }
+    }
+
+    function setBodyClass() {
+        if (window.innerWidth <= 380) {
+            document.body.className = ""; // reset class
+        } else if (window.innerWidth >= 993) {
+            document.body.className = "sidebar-enable vertical-collpsed";
+        } else {
+            document.body.className = ""; // default
+        }
+    }
+
+    // Jalankan saat load & resize
+    window.addEventListener("load", setBodyClass);
+    window.addEventListener("resize", setBodyClass);
+
+</script>

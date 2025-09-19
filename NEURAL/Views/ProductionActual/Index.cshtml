@@ -1,0 +1,884 @@
+﻿@model List<NEURAL.Models.ProductionActual.ProductionActualModel>
+@{
+    ViewData["Title"] = "Production Actual";
+}
+
+@using Newtonsoft.Json
+@using Newtonsoft.Json.Converters
+@{
+    var jsonSettings = new JsonSerializerSettings();
+    jsonSettings.Converters.Add(new StringEnumConverter()); // enum => string
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+
+    <!-- Custom Professional Styling matching React Design -->
+    <style>
+        body {
+            background: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .main-container {
+            max-width: 1792px;
+            margin: 0 auto;
+            padding: 24px;
+            min-height: 100vh;
+        }
+        
+        /* Header Card */
+        .header-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+        }
+        
+        .header-title {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+        
+        /* Filter Panel - Matching React Design */
+        .filter-panel {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .filter-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .filter-icon {
+            width: 20px;
+            height: 20px;
+            color: #64748b;
+        }
+        
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .filter-dropdown {
+            height: 40px !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 6px !important;
+            background: white !important;
+            font-size: 0.875rem !important;
+        }
+        
+        .filter-dropdown:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+        }
+        
+        /* Action Toolbar - Matching React Design */
+        .action-toolbar {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-primary {
+            background: #148484 !important;
+            border: 1px solid #148484 !important;
+            color: white !important;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        
+        .btn-primary:hover {
+            background: #0d6666 !important;
+            border-color: #0d6666 !important;
+            opacity: 0.9;
+        }
+        
+        .btn-secondary {
+            background: white !important;
+            border: 1px solid #d1d5db !important;
+            color: #374151 !important;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .btn-secondary:hover {
+            background: #f9fafb !important;
+            border-color: #9ca3af !important;
+        }
+        
+        /* Grid Container - Matching React Design */
+        .grid-container {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        
+        .k-grid-header th {
+            background: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+            font-weight: 600 !important;
+            color: #374151 !important;
+            padding: 12px 16px !important;
+            font-size: 0.875rem !important;
+        }
+        
+        .k-grid-header th:hover {
+            background: #f1f5f9 !important;
+        }
+        
+        .k-grid td {
+            padding: 12px 16px !important;
+            border-color: #f1f5f9 !important;
+            font-size: 0.875rem !important;
+        }
+        
+        .k-grid tr:hover {
+            background: #f8fafc !important;
+        }
+        
+        /* Status Icons */
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .status-sent {
+            color: #10b981;
+        }
+        
+        .status-pending {
+            color: #ef4444;
+        }
+        
+        /* Action Buttons in Grid */
+        .action-btn {
+            padding: 6px !important;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 4px !important;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 0 2px;
+        }
+        
+        .action-btn.view:hover {
+            background: #dbeafe !important;
+            color: #3b82f6 !important;
+        }
+        
+        .action-btn.delete:hover {
+            background: #fee2e2 !important;
+            color: #dc2626 !important;
+        }
+        
+        /* Alert Messages */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+        }
+        
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #34d399;
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #f87171;
+        }
+
+        /* Modal Styles - Matching React Design */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000 !important;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            max-width: 90vw;
+            width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            padding: 24px 24px 0;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .modal-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            margin: 0;
+        }
+
+        .modal-description {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #9ca3af;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            color: #6b7280;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        /* Report Table Styles - Matching React Design */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .report-table th,
+        .report-table td {
+            border: 1px solid #e5e7eb;
+            padding: 8px 12px;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        .report-table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .report-table .site-header {
+            background: #148484;
+            color: white;
+            font-weight: 600;
+        }
+
+        .report-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        /* Header Controls */
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            gap: 16px;
+        }
+
+        .header-controls-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* Email Grid Styles */
+        .email-grid-container {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-data-message {
+            text-align: center;
+            padding: 48px 24px;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        /* Color-coded rows for different data types */
+        .bg-blue-50 { background-color: rgba(239, 246, 255, 0.5); }
+        .bg-green-100 { background-color: rgba(220, 252, 231, 0.5); }
+        .bg-purple-100 { background-color: rgba(243, 232, 255, 0.5); }
+        .bg-orange-100 { background-color: rgba(255, 237, 213, 0.5); }
+        .bg-red-100 { background-color: rgba(254, 226, 226, 0.5); }
+        .bg-teal-100 { background-color: rgba(204, 251, 241, 0.5); }
+        .bg-gray-100 { background-color: rgba(243, 244, 246, 0.5); }
+
+        .k-icon.k-i-edit.icon-blue {
+            color: #3b82f6;
+        }
+
+        .k-icon.k-i-trash.icon-red {
+            color: #dc2626;
+        }
+
+        .modal-xl {
+            width: 90% !important;
+            max-width: 1400px !important; /* sesuaikan kebutuhan */
+        }
+
+        /* === Progress style: diseragamkan dengan DPR === */
+        :root {
+            --primary-color: #148484;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --info-color: #3b82f6;
+        }
+
+        .progress-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .progress-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid;
+            font-size: 10px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        /* state */
+        .progress-circle.completed {
+            background: var(--success-color);
+            border-color: var(--success-color);
+            color: #fff;
+        }
+
+        .progress-circle.running {
+            background: var(--info-color);
+            border-color: var(--info-color);
+            color: #fff;
+            animation: spin 1s linear infinite;
+        }
+
+        .progress-circle.error {
+            background: var(--error-color);
+            border-color: var(--error-color);
+            color: #fff;
+        }
+
+        .progress-circle.pending {
+            background: #e5e7eb;
+            border-color: #9ca3af;
+            color: #6b7280;
+        }
+
+        .progress-label {
+            font-size: 11px;
+            font-weight: 500;
+            max-width: 90px;
+            line-height: 1.2;
+        }
+
+        .progress-arrow {
+            width: 16px;
+            height: 1px;
+            background: #d1d5db;
+        }
+
+        @@keyframes spin {
+            0%
+
+        {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+
+        }
+
+        /* ===== Bigger action icons (table) ===== */
+        .action-buttons {
+            gap: 8px;
+        }
+        /* beri jarak sedikit lebih longgar */
+        .action-btn {
+            width: 40px; /* sebelumnya 32px */
+            height: 40px;
+            border-radius: 8px; /* sedikit lebih membulat */
+        }
+
+        .action-btn .bx {
+            font-size: 22px; /* BESARKAN ICON BOXICONS */
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-btn .mdi {
+            font-size: 22px; /* BESARKAN ICON BOXICONS */
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* (Opsional) warna ikon per-aksi */
+        /* Hover tetap halus */
+        .action-btn:hover {
+            background: #f1f5f9;
+            transform: translateY(-1px);
+        }
+
+        /* ===== Jika pakai command column Kendo (email grid) ===== */
+        .k-grid .k-grid-edit .bx,
+        .k-grid .k-grid-delete .bx {
+            font-size: 20px; /* besarkan icon edit/delete di email grid */
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header-card">
+            <h1 class="header-title">Production Actual</h1>
+        </div>
+
+        <!-- Success/Error Messages -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">
+                <span>✓</span>
+                @TempData["SuccessMessage"]
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-error">
+                <span>⚠</span>
+                @TempData["ErrorMessage"]
+            </div>
+        }
+
+        <!-- Filter Panel -->
+        <div class="filter-panel">
+            <div class="filter-header">
+                <div class="filter-title">
+                    <svg class="filter-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"></path>
+                    </svg>
+                    Filters & Search
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button id="applyFiltersBtn" class="k-button btn-primary">
+                        <span class="bx bx-check"></span>
+                        Apply
+                    </button>
+                    <button id="clearFiltersBtn" class="k-button btn-secondary" style="display: none;">
+                        <span class="k-icon k-i-x"></span>
+                        Clear All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Dropdowns -->
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label class="filter-label">Jobsite</label>
+                    <input id="jobsiteFilter" class="filter-dropdown" />
+                </div>
+                <div class="filter-group">
+					<label for="yearFilter">Year</label>
+                    <input id="yearFilter" class="filter-dropdown" />
+				</div>
+            </div>
+        </div>
+
+        <!-- Action Toolbar -->
+        <div class="action-toolbar">
+            <div class="action-buttons">
+                <button id="pivotActualBtn" class="k-button btn-primary">
+                    <span class="bx bx-pie-chart"></span>
+                    Pivot Actual
+                </button>
+            </div>
+        </div>
+
+        <!-- Kendo Grid -->
+        <div class="grid-container">
+            <div id="productionActualGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            let appliedFilters = {
+                year: 'all',
+                jobsite: 'all'
+            };
+            let pendingFilters = {
+                year: 'all',
+                jobsite: 'all'
+            };
+
+            // Initialize filter dropdowns
+            $("#jobsiteFilter").kendoDropDownList({
+                dataSource: {
+                    data: [
+                        { text: "All Jobsites", value: "all" },
+                        { text: "ADMO", value: "ADMO" },
+                        { text: "SERA", value: "SERA" },
+                        { text: "MACO", value: "MACO" },
+                        { text: "WARA", value: "WARA" },
+                        { text: "SOUTH", value: "SOUTH" }
+                    ]
+                },
+                dataTextField: "text",
+                dataValueField: "value",
+                value: "all",
+                change: function () {
+                    pendingFilters.jobsite = this.value();
+                    updateFilterStatus();
+                }
+            });
+
+            // Initialize Year Picker
+			$("#yearFilter").kendoDatePicker({
+				start: "decade",
+				depth: "decade",
+				format: "yyyy",
+				footer: false,
+				placeholder: "Select Year",
+				change: function(e) {
+					// Optionally auto-apply filters on change
+				}
+			});
+
+            // Apply filters
+            $("#applyFiltersBtn").click(function() {
+                appliedFilters = { ...pendingFilters };
+                refreshGrid();
+            });
+
+            // Clear filters
+            $("#clearFiltersBtn").click(function() {
+                $("#jobsiteFilter").data("kendoDropDownList").value("all");
+                $("#yearFilter").data("kendoDropDownList").value("all");
+                pendingFilters = {
+                    year: 'all',
+                    jobsite: 'all'
+                };
+                appliedFilters = {
+                    year: 'all',
+                    jobsite: 'all'
+                };
+                refreshGrid();
+                updateFilterStatus();
+            });
+
+            // Initialize grid data
+			//var gridData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model));
+            var gridData = @Html.Raw(JsonConvert.SerializeObject(Model, jsonSettings));
+            //console.log(gridData);
+			// Initialize Kendo Grid
+			$("#productionActualGrid").kendoGrid({
+				dataSource: {
+					data: gridData,
+					pageSize: 10,
+					schema: {
+						model: {
+							id: "Id",
+							fields: {
+								Id: { type: "string" },
+								Jobsite: { type: "string" },
+								Year: { type: "string" },
+								VersionName: { type: "string" },
+								Progress: { type: "object" }
+							}
+						}
+					}
+				},
+				height: 600,
+				sortable: true,
+				pageable: {
+					refresh: true,
+					pageSizes: [10, 20, 50],
+					buttonCount: 5
+				},
+				columns: [
+					{
+						field: "Jobsite",
+						title: "Jobsite",
+						width: "180px",
+						template: "<div style='font-weight: 500;'>#= Jobsite #</div>"
+					},
+					{
+						field: "Year",
+						title: "Year",
+						width: "100px",
+						template: "<div style='text-align: center; font-weight: 500;'>#= Year #</div>"
+					},
+					{
+						field: "VersionName",
+						title: "Version Name",
+						width: "160px",
+						template: "<div style='font-family: monospace; font-size: 13px; padding: 4px 8px; border-radius: 4px;'>#= VersionName #</div>"
+					},
+					{
+						field: "Progress",
+						title: "Progress",
+						width: "680px",
+						sortable: false,
+						template: function(dataItem) {
+							return generateProgressTemplate(dataItem.Progress);
+						}
+					},
+					{
+						title: "Actions",
+						width: "140px",
+						sortable: false,
+						template: function(dataItem) {
+							return generateActionsTemplate(dataItem);
+						}
+					}
+				]
+			});
+
+            // Helper functions
+            function refreshGrid() {
+                $("#productionActualGrid").data("kendoGrid").dataSource.read();
+            }
+
+            function updateFilterStatus() {
+                var hasFilters = pendingFilters.year !== "all" ||
+                               pendingFilters.jobsite !== "all";
+                
+                $("#clearFiltersBtn").toggle(hasFilters);
+            }
+
+            // Button event handlers
+            $("#pivotActualBtn").click(function () {
+                alert("Pivot template...");
+            });
+
+            function getStatusIcon(status) {
+                switch ((status || '').toString().toLowerCase()) {
+                    case 'completed': return '✓';
+                    case 'running': return '⟳';
+                    case 'error': return '✗';
+                    case 'pending': return '○';
+                    default: return '○';
+                }
+            }
+
+            function generateProgressTemplate(progress) {
+                // Normalisasi status dari backend: "Completed/Running/Error/Pending" -> lower-case class DPR
+                function statusToClass(v) {
+                    var s = (v || '').toString().toLowerCase();
+                    if (s === 'completed') return 'completed';
+                    if (s === 'running')   return 'running';
+                    if (s === 'error')     return 'error';
+                    return 'pending'; // default
+                }
+                // Tanda di dalam lingkaran sesuai DPR
+                function statusMark(v, fallback) {
+                    var s = (v || '').toString().toLowerCase();
+                    if (s === 'completed') return '✓';
+                    //if (s === 'running')   return '◐';
+                    if (s === 'error')     return '✗';
+                    return fallback || '•';
+                }
+                // Urutan step disesuaikan dengan DPR kamu, tetapi memakai key milik Production Actual
+                var steps = [
+                    { key: 'DailyFleet',    label: 'Daily Fleet',    fallback: 'DF' },
+                    { key: 'MonthlyFleet',  label: 'Monthly Fleet',  fallback: 'MF' },
+                    { key: 'DailyProcess',  label: 'Daily Process',  fallback: 'DP' },
+                    { key: 'MonthlyProcess',label: 'Monthly Process',fallback: 'MP' },
+                    { key: 'YearlyProcess', label: 'Yearly Process', fallback: 'YP' },
+                    { key: 'YearlyFleet',   label: 'Yearly Fleet',   fallback: 'YF' },
+                    { key: 'Success',       label: 'Success',        fallback: 'S'  }
+                ];
+
+                var html = '<div class="progress-indicator">';
+                for (var i = 0; i < steps.length; i++) {
+                    var st = steps[i];
+                    var val = progress ? progress[st.key] : null;
+                    var cls = statusToClass(val);
+                    var mark = statusMark(val, st.fallback);
+
+                    html += '<div class="progress-step">';
+                    html += '  <div class="progress-circle ' + cls + '">' + mark + '</div>';
+                    html += '  <div class="progress-label">' + st.label + '</div>';
+                    html += '</div>';
+
+                    if (i < steps.length - 1) {
+                        html += '<div class="progress-arrow"></div>';
+                    }
+                }
+                html += '</div>';
+                return html;
+            }
+
+            // Actions template generator
+            function generateActionsTemplate(dataItem) {
+                var hasError = hasErrorStatus(dataItem.Progress);
+                var isSuccess = isSuccessStatus(dataItem.Progress);
+                
+                var html = '<div style="display: flex; gap: 4px; justify-content: center;">';
+
+                if (hasError) {
+                    html += '<button class="action-btn btn-view" onclick="retryItem(\'' + dataItem.Id + '\')" title="Retry"><span class="mdi mdi-refresh"></span></button>';
+                    html += '<button class="action-btn btn-view" onclick="downloadLog(\'' + dataItem.Id + '\')" title="Download error log"><span class="bx bx-download"></span></button>';
+                }
+
+                if (isSuccess) {
+                    html += '<button class="action-btn btn-view" onclick="intervention(\'' + dataItem.Id + '\')" title="Intervention"><span class="mdi mdi-alert-box-outline"></span></button>';
+                    html += '<button class="action-btn btn-view" onclick="deleteItem(\'' + dataItem.Id + '\')" title="Delete"><span class="bx bxs-trash"></span></button>';
+                }
+
+                html += '</div>';
+                return html;
+            }
+
+            function hasErrorStatus(progress) {
+                return progress.DailyFleet === 'error' ||
+                    progress.MonthlyFleet === 'error' ||
+                    progress.DailyProcess === 'error' ||
+                    progress.MonthlyProcess === 'error' ||
+                    progress.YearlyProcess === 'error' ||
+                    progress.YearlyFleet === 'error';
+            }
+
+            function isSuccessStatus(progress) {
+                return progress.Success === 'completed' && !hasErrorStatus(progress);
+            }
+        });
+		
+		// Global action functions
+		function deleteItem(id) {
+            alert("Delete Production Actual");
+		}
+
+		function retryItem(id) {
+			alert("Retry generate data Actual");
+		}
+
+		function downloadLog(id) {
+            alert("Download Log Error");
+		}
+
+		function intervention(id) {
+            alert("Intervention Production Actual");
+		}
+    </script>
+</body>
+</html>

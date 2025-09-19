@@ -1,0 +1,163 @@
+﻿@{
+    ViewBag.Title = "Holiday";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<span id="popupNotification"></span>
+<div id="holidayGrid"></div>
+<div id="holidayDetailWindow" style="display: none;"></div>
+
+<script>
+    var isReadOnly;
+    var serviceBaseUrl;
+    $(document).ready(function () {
+        getMenuAccess().done(function (noAccess) {
+                if (noAccess) {
+                    window.location.href = "../Home/Index";
+                } else {
+                    getMenuIsReadOnly().done(function (dataRead) {
+                        isReadOnly = dataRead;
+                        serviceBaseUrl = getBasicUrl() + "/GetSummary";
+
+                        var dataSource = new kendo.data.DataSource({
+                            transport: {
+                                read: {
+                                    url: serviceBaseUrl,
+                                    dataType: "json",
+                                    type: "GET"
+                                }
+                            },
+                            schema: {
+                                data: "data",
+                                total: "total",
+                                model: {
+                                    fields: {
+                                        Jobsite: { type: "string" },
+                                        MbrVersion: { type: "string" },
+                                        HolidayYear: { type: "number" },
+                                        JobSiteId: { type: "number" }
+                                    }
+                                }
+                            },
+                            pageSize: 10
+                        });
+
+
+                        $("#holidayGrid").kendoGrid({
+                            dataSource: dataSource,
+                            pageable: {
+                                refresh: true,
+                                pageSizes: true,
+                                buttonCount: 10
+                            },
+                            selectable: "row",
+                            toolbar: [
+                                {type:"button",text:"Sync", click: syncHoliday, className: "k-grid-btn" },
+                                { name: "search" },
+                            ],
+                            columns: [
+                                { field: "Jobsite", title: "Jobsite", width: 200 },
+                                { field: "MbrVersion", title: "MBR Version", width: 120 },
+                                { field: "HolidayYear", title: "Year", width: 100 },
+                                { field: "JobSiteId", hidden:true},
+                                {
+                                    title: "",
+                                    width: 100,
+                                    command: [
+                                        { name: "detail", text: "", iconClass: "k-icon k-i-search", click: openHolidayDetailDialog }
+                                    ]
+                                }
+                            ],
+                            change: function (e) {
+                                const selected = this.dataItem(this.select());
+                                if (selected) openHolidayDetailDialog(selected);
+                            },
+                            editable: false
+                        });
+
+                        dataSource.bind("requestEnd", onRequestEnd);
+                        dataSource.fetch();
+                        });
+                    }
+                });
+            });
+
+            function onRequestEnd(e) {
+                if (e.type != "read") {
+                    var popupNotification = $("#popupNotification").kendoNotification().data("kendoNotification");
+             
+                    if (e.response.status == 'success') {
+                        popupNotification.show(e.response.text, "success");
+                    } else {
+                        popupNotification.show(e.response.text, "error");
+                    }
+                    e.sender.read();
+                }
+            }
+    
+            function onSearchClick(jobsiteId, mbrVersion, year) {
+               alert(`Clicked: ${jobsiteId}, ${mbrVersion}, ${year}`);
+            }
+
+            function syncHoliday(){
+                kendo.alert("Sync Holiday Started");
+
+                $.ajax({
+                    url: '@Url.Action("SyncHoliday", "Holiday")',
+                    type: "GET",
+                    success: function () {
+                        console.log("Holiday sync succeeded (200 OK).");
+                    },
+                    statusCode: {
+                        204: function () {
+                            console.log(" Holiday sync succeeded (204 No Content).");
+                        },
+                        400: function () {
+                            console.log(" Holiday sync failed (400 Bad Request).");
+                        }
+                    },
+                    error: function (xhr) {
+                        console.log(" Error");
+                    }
+                });
+            }
+
+            function openHolidayDetailDialog(arg) {
+                let data;
+
+                if (arg && arg.currentTarget) {
+          
+                    arg.preventDefault();
+                    const $tr = $(arg.currentTarget).closest("tr");
+                    const grid = $tr.closest(".k-grid").data("kendoGrid");
+                    data = grid?.dataItem($tr);
+                } else {
+                    data = arg;
+                }
+
+                if (!data) {
+                    console.warn("openHolidayDetailDialog: No data item found.", arg);
+                    return;
+                }
+
+                const jobsite     = data.Jobsite     ?? data.jobsite;
+                const jobsiteId   = data.JobSiteId   ?? data.jobsiteId ?? data.JobsiteID;
+                const holidayYear = data.HolidayYear ?? data.holidayYear ?? data.Year;
+                const mbrVersion  = data.MbrVersion  ?? data.mbrVersion;
+                const win = $("#holidayDetailWindow").kendoWindow({
+                    title: "",
+                    modal: true,
+                    visible: false,
+                    width: "800px",
+                    content: {
+                      url:"@Url.Action("DetailDialog","Holiday")",
+                      data: { jobsite, jobsiteId, holidayYear, mbrVersion }
+                    },
+                    actions: ["Close"],
+                    open: function () { this.center(); }
+                  }).data("kendoWindow");
+
+                win.open();
+            }
+
+</script>

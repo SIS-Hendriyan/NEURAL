@@ -1,0 +1,211 @@
+﻿<!-- Email Settings Modal -->
+<div class="modal fade" id="emailSettingsModal" tabindex="-1" aria-labelledby="emailSettingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                <h5 class="modal-title" id="emailSettingsModalLabel">
+                    <i class="k-icon k-i-gear"></i> Email Settings
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <p class="text-muted">Configure email settings for each jobsite. Multiple email addresses should be separated by semicolon (;).</p>
+                </div>
+                <div id="emailSettingsGrid"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary-custom" onclick="saveAllEmailSettings()">
+                    <i class="k-icon k-i-save"></i> Save All Settings
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function loadEmailSettings() {
+        $.get('/DPR/GetEmailSettings', function(data) {
+            initializeEmailSettingsGrid(data);
+        });
+    }
+
+    function initializeEmailSettingsGrid(data) {
+        $("#emailSettingsGrid").kendoGrid({
+            dataSource: {
+                data: data,
+                schema: {
+                    model: {
+                        id: "Id",
+                        fields: {
+                            Id: { type: "string" },
+                            Jobsite: { type: "string", validation: { required: true } },
+                            EmailTo: { type: "string", validation: { required: true, email: true } },
+                            EmailCC: { type: "string" }
+                        }
+                    }
+                }
+            },
+            columns: [
+                {
+                    field: "Jobsite",
+                    title: "Jobsite",
+                    width: "200px",
+                    editor: function(container, options) {
+                        $('<input required name="' + options.field + '"/>')
+                            .appendTo(container)
+                            .kendoDropDownList({
+                                dataSource: {
+                                    transport: {
+                                        read: {
+                                            url: "/DPR/GetDropdownOptions/jobsite",
+                                            dataType: "json"
+                                        }
+                                    }
+                                },
+                                optionLabel: "Select Jobsite"
+                            });
+                    }
+                },
+                {
+                    field: "EmailTo",
+                    title: "Email To",
+                    width: "250px",
+                    template: function(dataItem) {
+                        return '<div style="word-break: break-all;">' + dataItem.EmailTo + '</div>';
+                    }
+                },
+                {
+                    field: "EmailCC",
+                    title: "Email CC",
+                    width: "250px",
+                    template: function(dataItem) {
+                        return '<div style="word-break: break-all;">' + (dataItem.EmailCC || '') + '</div>';
+                    }
+                },
+                {
+                    command: [
+                        { name: "edit", text: { edit: "Edit", update: "Save", cancel: "Cancel" } },
+                        { name: "destroy", text: "Delete" }
+                    ],
+                    title: "Actions",
+                    width: "200px"
+                }
+            ],
+            toolbar: [
+                { 
+                    name: "create", 
+                    text: "Add New Email Setting",
+                    className: "btn-primary-custom"
+                }
+            ],
+            editable: {
+                mode: "inline",
+                createAt: "top"
+            },
+            pageable: {
+                pageSize: 10
+            },
+            sortable: true,
+            edit: function(e) {
+                // Custom validation for email fields
+                if (e.model.isNew()) {
+                    // Set default values for new records
+                    var jobsiteDropDown = e.container.find('[name="Jobsite"]').data("kendoDropDownList");
+                    if (jobsiteDropDown && !jobsiteDropDown.value()) {
+                        jobsiteDropDown.select(0);
+                    }
+                }
+            },
+            save: function(e) {
+                // Validate email format
+                var emailTo = e.model.EmailTo;
+                var emailCC = e.model.EmailCC;
+                
+                if (!validateEmail(emailTo)) {
+                    showNotification("Invalid Email To format", "error");
+                    e.preventDefault();
+                    return;
+                }
+                
+                if (emailCC && !validateEmailList(emailCC)) {
+                    showNotification("Invalid Email CC format. Use semicolon (;) to separate multiple emails", "error");
+                    e.preventDefault();
+                    return;
+                }
+
+                // Save to server
+                var emailSetting = {
+                    Id: e.model.Id || "",
+                    Jobsite: e.model.Jobsite,
+                    EmailTo: e.model.EmailTo,
+                    EmailCC: e.model.EmailCC || ""
+                };
+
+                $.post('/DPR/SaveEmailSetting', emailSetting, function(response) {
+                    if (response.success) {
+                        showNotification(response.message, "success");
+                        if (!e.model.Id) {
+                            e.model.Id = response.data.Id;
+                        }
+                    } else {
+                        showNotification(response.message, "error");
+                    }
+                });
+            },
+            remove: function(e) {
+                if (e.model.Id) {
+                    $.post('/DPR/DeleteEmailSetting', { id: e.model.Id }, function(response) {
+                        if (response.success) {
+                            showNotification(response.message, "success");
+                        } else {
+                            showNotification(response.message, "error");
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    function validateEmail(email) {
+        var emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+        return emailRegex.test(email);
+    }
+
+    function validateEmailList(emailList) {
+        if (!emailList) return true;
+        var emails = emailList.split(';');
+        for (var i = 0; i < emails.length; i++) {
+            var email = emails[i].trim();
+            if (email && !validateEmail(email)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function saveAllEmailSettings() {
+        var grid = $("#emailSettingsGrid").data("kendoGrid");
+        var data = grid.dataSource.data();
+        
+        var hasErrors = false;
+        $.each(data, function(index, item) {
+            if (!validateEmail(item.EmailTo)) {
+                hasErrors = true;
+                showNotification("Invalid email format in row " + (index + 1), "error");
+                return false;
+            }
+            if (item.EmailCC && !validateEmailList(item.EmailCC)) {
+                hasErrors = true;
+                showNotification("Invalid CC email format in row " + (index + 1), "error");
+                return false;
+            }
+        });
+
+        if (!hasErrors) {
+            showNotification("All email settings are valid and saved", "success");
+            $("#emailSettingsModal").modal('hide');
+        }
+    }
+</script>

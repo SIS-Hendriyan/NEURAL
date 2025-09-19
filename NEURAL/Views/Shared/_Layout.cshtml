@@ -1,0 +1,605 @@
+﻿@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - NEURA</title>
+
+    <link href="../../@Html.Raw(ViewBag.AppName)/assets/css/11.0.2/material-main.css" rel="stylesheet"/>
+    <link href="https://kendo.cdn.telerik.com/themes/11.0.2/default/default-main.css" rel="stylesheet" />
+    <link href="../../@Html.Raw(ViewBag.AppName)/css/join-survey.css" rel="stylesheet" />
+
+
+    <script src="../../@Html.Raw(ViewBag.AppName)/assets/js/jquery-3.7.0.min.js"></script> 
+    <script src="../../@Html.Raw(ViewBag.AppName)/assets/js/2025.3.825/kendo.all.min.js"></script>
+    <script src="../../@Html.Raw(ViewBag.AppName)/assets/js/2025.3.825/kendo-ui-license.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- App favicon -->
+    <link rel="shortcut icon" href="../../@Html.Raw(ViewBag.AppName)/assets/img/logo_favicon_v1.png">
+
+    <!-- Bootstrap Css -->
+    <link href="../../@Html.Raw(ViewBag.AppName)/skote/assets/css/bootstrap.min.css" id="bootstrap-style" rel="stylesheet" type="text/css" />
+    <!-- Icons Css -->
+    <link href="../../@Html.Raw(ViewBag.AppName)/skote/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+    <!-- App Css-->
+    <link href="../../@Html.Raw(ViewBag.AppName)/skote/assets/css/app.min.css" id="app-style" rel="stylesheet" type="text/css" />
+
+    <style>
+        .logo-adaro-align {
+            text-align: center;
+        }
+
+        .logo-imore {
+            height: 30px;
+        }
+
+        .align-content-center {
+            align-content: center;
+        }
+
+        .vertical-collpsed {
+            min-height: 100% !important;
+        }
+
+        #page-topbar {
+            background-color: #ffffff !important;
+        }
+
+        body[data-sidebar=dark] .vertical-menu {
+            /* background: #003B53; */
+            background-image: url(../../@Html.Raw(ViewBag.AppName)/assets/img/logo_alamtri_v5.png);
+        }
+
+        .footer {
+            background-color: #ffffff !important;
+        }
+
+        body[data-sidebar=dark] .menu-title {
+            color: #ffffff;
+        }
+
+        body[data-sidebar=dark] #sidebar-menu ul li ul.sub-menu li a {
+            color: #a7a7a7;
+        }
+
+        .height-100vh {
+            height: 100vh;
+        }
+
+        .vertical-center {
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            -ms-transform: translateY(-50%);
+            transform: translateY(-50%);
+            width: 80%
+        }
+
+        #sidebar-menu ul li a {
+            font-size: 16px;
+            font-family: sans-serif;
+        }
+
+        #sidebar-menu ul li ul.sub-menu li a {
+            font-size: 16px;
+        }
+
+        .header-profile-user {
+            background-color: #f6f6f600;
+        }
+
+        .header-item {
+            color: #ffffff;
+        }
+
+        .noti-icon i {
+            color: #ffffff;
+        }
+
+        .header-item:hover {
+            color: #afafaf;
+        }
+
+        .navbar-header .dropdown .show.header-item {
+            background-color: #f8f9fa00;
+        }
+
+        body[data-sidebar=dark] .navbar-brand-box {
+            background: #ffffff00;
+        }
+
+        .left-menu-custom {
+            border: 2px solid #333;
+            border-radius: 10px;
+            background-color: #00000050;
+            padding: 10px;
+            width: 90% !important;
+            margin: 5px;
+        }
+
+        .vertical-collpsed .vertical-menu {
+            width: 100px !important;
+        }
+
+        .stepper-container {
+            margin-top: 5px;
+        }
+
+        .k-button.k-grid-btn {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 12px;
+        }
+
+            .k-button.k-grid-btn:hover {
+                background-color: #0056b3;
+            }
+
+
+        .k-button.btn-round-sm {
+            border-radius: 6px !important;
+        }
+
+        .k-button.btn-round-md {
+            border-radius: 12px !important;
+        }
+     
+        .k-button.btn-round-lg {
+            border-radius: 20px !important;
+        }
+
+        .k-button.btn-blue,
+        .k-button-solid-primary.btn-blue {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+            color: #fff !important;
+        }
+
+            .k-button.btn-blue:hover,
+            .k-button-solid-primary.btn-blue:hover {
+                background-color: #0b5ed7 !important;
+                border-color: #0b5ed7 !important;
+            }
+
+            .k-button.btn-blue:focus,
+            .k-button-solid-primary.btn-blue:focus {
+                box-shadow: 0 0 0 .2rem rgba(13,110,253,.25) !important;
+                outline: 0;
+            }
+
+        .k-button.btn-h-32 {
+            height: 32px !important;
+            min-height: 32px !important;
+            padding-inline: 12px;
+        }
+
+        .k-button.btn-h-36 {
+            height: 36px !important;
+            min-height: 36px !important;
+            padding-inline: 14px;
+        }
+
+        .k-button.btn-h-40 {
+            height: 40px !important;
+            min-height: 40px !important;
+            padding-inline: 16px;
+        }
+    </style>
+
+</head>
+
+<body data-sidebar="dark">
+
+    <!-- Begin page -->
+    <div id="layout-wrapper">
+        <span id="popupNotification"></span>
+        <header id="page-topbar" style="background-image: url(../../@Html.Raw(ViewBag.AppName)/assets/img/warna_dasar_alamtri_v3.png);">
+            <div class="navbar-header">
+                <div class="d-flex">
+                    <!-- LOGO -->
+                    <div class="navbar-brand-box">
+                        <a href="../../@Html.Raw(ViewBag.AppName)/Home/Index" class="logo logo-dark">
+                            <span class="logo-sm">
+                                <img src="../../@Html.Raw(ViewBag.AppName)/assets/img/logo_alamtri_v3.png" alt="" height="30">
+                            </span>
+                            <span class="logo-lg">
+                                <img src="../../@Html.Raw(ViewBag.AppName)/assets/img/logo_alamtri_v8.png" alt="" width="auto" height="60">
+                            </span>
+                        </a>
+
+                        <a href="../../@Html.Raw(ViewBag.AppName)/Home/Index" class="logo logo-light">
+                            <span class="logo-sm">
+                                <img src="../../@Html.Raw(ViewBag.AppName)/assets/img/logo_alamtri_v3.png" alt="" height="30">
+                            </span>
+                            <span class="logo-lg">
+                                <img src="../../@Html.Raw(ViewBag.AppName)/assets/img/logo_alamtri_v8.png" alt="" width="auto" height="40">
+                            </span>
+                        </a>
+                    </div>
+
+                    <button type="button" class="btn btn-sm px-3 font-size-16 header-item waves-effect" id="vertical-menu-btn">
+                        <i class="fa fa-fw fa-bars"></i>
+                    </button>
+
+                    <!-- App Search-->
+                    @* <div class="app-search d-none d-lg-block">
+                        <div class="position-relative">
+                            <input type="text" class="form-control" placeholder="Search...">
+                            <span class="bx bx-search-alt"></span>
+                        </div>
+                    </div> *@
+                    @Html.Raw(ViewBag.RawSearch)
+                </div>
+
+                <div class="d-flex">
+
+                    <div class="dropdown d-inline-block d-lg-none ms-2">
+                        <button type="button" class="btn header-item noti-icon waves-effect" id="page-header-search-dropdown"
+                                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="mdi mdi-magnify"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0"
+                             aria-labelledby="page-header-search-dropdown">
+
+                            <div class="p-3">
+                                <div class="form-group m-0">
+                                    <div class="input-group">
+                                        @* <input type="text" class="form-control" placeholder="Search ..." aria-label="Recipient's username"> *@
+                                        @Html.Raw(ViewBag.RawSearch2)
+                                        <div class="input-group-append">
+                                            <button class="btn btn-primary" onclick="f_search()"><i class="mdi mdi-magnify"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dropdown d-none d-lg-inline-block ms-1">
+                        <button type="button" class="btn header-item noti-icon waves-effect" data-bs-toggle="fullscreen">
+                            <i class="bx bx-fullscreen"></i>
+                        </button>
+                    </div>
+
+                    <div class="dropdown d-inline-block">
+                        <button type="button" class="btn header-item waves-effect" id="page-header-user-dropdown"
+                                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <img class="rounded-circle header-profile-user" src="../../@Html.Raw(ViewBag.AppName)/skote/assets/images/users/icon_users.png" alt="Header Avatar">
+                            <span class="d-none d-xl-inline-block ms-1" key="t-name">@Html.Raw(ViewBag.Name)</span>
+                            <i class="mdi mdi-chevron-down d-none d-xl-inline-block"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <div class="dropdown-item" style="display: @Html.Raw(ViewBag.displayNRP)">
+                                <span>@Html.Raw(ViewBag.NRP)</span>
+                            </div>
+
+                            <a class="dropdown-item" style="display: @Html.Raw(ViewBag.displayBtnLogin)" href="@Url.Action("Login", "Login")"><i class="bx bx-power-off font-size-16 align-middle me-1"></i> <span key="t-login">Login</span></a>
+
+                            <div class="dropdown-divider" style="display: @Html.Raw(ViewBag.displayBtnSignOut)"></div>
+                            <a class="dropdown-item d-block" style="display: @Html.Raw(ViewBag.displayBtnSignOut)" href="javascript:changePassword();"><i class="bx bx-wrench font-size-16 align-middle me-1"></i> <span key="t-settings">Change Password</span></a>
+                            <a class="dropdown-item text-danger" style="display: @Html.Raw(ViewBag.displayBtnSignOut)" href="javascript:SignOut();"><i class="bx bx-power-off font-size-16 align-middle me-1 text-danger"></i> <span key="t-logout">Logout</span></a>
+
+                            <script type="text/javascript">
+                                function SignOut() {
+                                    var url = "../../@Html.Raw(ViewBag.AppName)/Login/SignOut";
+                                    $.ajax({
+                                        type: "POST",
+                                        url: url,
+                                        dataType: "json",
+                                        cache: false,
+                                        success: function (data) {
+                                            var status = data.text;
+                                            if (status == "Success") {
+                                                window.location.href = "../../@Html.Raw(ViewBag.AppName)/Login/Login";
+                                            } else {
+                                                alert(status);
+                                            }
+                                        },
+                                        error: function (data) {
+                                            alert(data.text);
+                                        }
+                                    })
+                                }
+                            </script>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </header>
+
+        <!-- ========== Left Sidebar Start ========== -->
+        <div class="vertical-menu" id="leftMenu">
+
+            <div data-simplebar class="h-100" style="background: #00000080;">
+
+                <!--- Sidemenu -->
+                <div id="sidebar-menu">
+                    @Html.Raw(ViewBag.RawMenu)
+                </div>
+                <!-- Sidebar -->
+            </div>
+        </div>
+        <!-- Left Sidebar End -->
+        <!-- ============================================================== -->
+        <!-- Start right Content here -->
+        <!-- ============================================================== -->
+        <div class="main-content">
+
+            <div class="page-content">
+                <div class="container-fluid">
+                    @* <div class="pagetitle">
+                        <h1>@ViewBag.Title</h1>
+                        <nav>
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="../Home/Index">Home</a></li>
+                                <li class="breadcrumb-item"><a href="../@ViewBag.Menu/Index">@ViewBag.Title</a></li>
+                                <li class="breadcrumb-item active"><a href="../@ViewBag.SubMenu/Index">@ViewBag.SubTitle</a></li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <br /> *@
+                    @RenderBody()
+                    <!-- end row -->
+                </div>
+                <!-- container-fluid -->
+            </div>
+            <!-- End Page-content -->
+
+            <footer class="footer">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <script>document.write(new Date().getFullYear())</script> © <strong><span>PT SAPTAINDRA SEJATI</span></strong>. All Rights Reserved.
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="text-sm-end d-sm-block">
+                                Version @Configuration.GetSection("version")["version"] | Release @Configuration.GetSection("version")["release"]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+        <!-- end main content-->
+
+    </div>
+    <!-- END layout-wrapper -->
+    <!-- Right bar overlay-->
+    <div class="rightbar-overlay"></div>
+
+    <!-- JAVASCRIPT -->
+    <script src="../../../@Html.Raw(ViewBag.AppName)/skote/assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../../@Html.Raw(ViewBag.AppName)/skote/assets/libs/metismenu/metisMenu.min.js"></script>
+    <script src="../../@Html.Raw(ViewBag.AppName)/skote/assets/libs/simplebar/simplebar.min.js"></script>
+    <script src="../../@Html.Raw(ViewBag.AppName)/skote/assets/libs/node-waves/waves.min.js"></script>
+
+    <!-- App js -->
+    <script src="../../@Html.Raw(ViewBag.AppName)/skote/assets/js/app.js"></script>
+
+    <script src="../../@Html.Raw(ViewBag.AppName)/js/Global.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>
+
+
+@* @Html.Partial("_PartialView/_ChangePassword") *@
+
+<script>
+    function changePassword() {
+        window.location.href = "../ChangePassword/Index";
+    }
+
+    function changePasswordOld() {
+        //var stat = "SSO";
+        var username = getCookie("UserName");
+        //alert(username);
+        if (isNaN(username)) {
+            window.open('https://app-saptaindra.msappproxy.net/Rdweb/pages/en-US/Password.aspx', '_blank');
+        } else {
+            $(".formChangePassword").find("span.validateText").remove();
+            var viewModel = kendo.observable({
+                currentPass: "",
+                newPass: "",
+                retypePass: "",
+                savePassword: function (e) {
+                    var validator = $("#ChangePasswordForm").data("kendoValidator");
+                    if (validator.validate()) {
+                        data = [];
+                        e.preventDefault();
+                        data.push({
+                            currentPass: this.currentPass,
+                            newPass: this.newPass,
+                            retypePass: this.retypePass
+                        });
+                        updatePassword(data);
+                    }
+                }
+            });
+
+            kendo.bind($("#ChangePasswordModals"), viewModel);
+            $("#ChangePasswordModals .modal-title").text("Change Password");
+            ShowHideModal("ChangePasswordModals");
+        }
+    }
+
+    function updatePassword(data) {
+        var url = "../Login/changePassword";
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: {
+                data: kendo.stringify(data)
+            },
+            success: function (data) {
+                if (data.status === 'success') {
+                    notif(data.text, "success");
+                    ShowHideModal("ChangePasswordModals");
+                    window.location.href = "../Login/Login";
+                }
+                else {
+                    notif(data.text, "error");
+                }
+            },
+            error: function (data) {
+                notif(data.text, "error");
+            }
+        });
+    }
+
+    function ShowHideModal(modalName) {
+        if ($("#" + modalName + "").hasClass('show')) {
+            $("#" + modalName + "").modal('hide');
+        } else {
+            $("#" + modalName + "").modal('show');
+        }
+    }
+
+    function notif(text, status) {
+        var popupNotification = $("#popupNotification").kendoNotification({
+            position: {
+                pinned: true,
+                top: 30,
+                right: 30
+            },
+            autoHideAfter: 4000,
+            stacking: "down"
+
+        }).data("kendoNotification");
+        popupNotification.show(text, status);
+    }
+
+    function getCookie(cname) {
+        let name = cname + "=";
+        let decodedCookie = decodeURIComponent(document.cookie);
+        let ca = decodedCookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+
+    /*function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+            let date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
+    }
+
+    function getCookie(name) {
+        let nameEQ = name + "=";
+        let cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            let c = cookies[i].trim();
+            if (c.indexOf(nameEQ) === 0) {
+                return decodeURIComponent(c.substring(nameEQ.length, c.length));
+            }
+        }
+        return null;
+    }*/
+
+    function setCookiesLoginAs(nrpLoginAs, namaCookies) {
+        $.ajax({
+            url: "../../@Html.Raw(ViewBag.AppName)/Home/setCookiesLoginAs",
+            type: "GET",
+            data: {
+                nrpLoginAs: nrpLoginAs,
+                namaCookies: namaCookies
+            },
+            success: function (result) {
+                data = result.data;
+                console.log(result);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('error: ' + jqXHR.status);
+            }
+        });
+    }
+
+    function createLog(nameApps, ket) {
+        $.ajax({
+            url: "../../@Html.Raw(ViewBag.AppName)/Home/CR",
+            type: "GET",
+            data: {
+                application: nameApps,
+                ket: ket
+            },
+            success: function (result) {
+                data = result.data;
+                console.log(result);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('error: ' + jqXHR.status);
+            }
+        });
+    }
+
+    function cekUserApps(url, nameApps, nrpLoginAs, akronim) {
+        $.ajax({
+            url: "../../@Html.Raw(ViewBag.AppName)/Home/CEK_USER_APPS",
+            type: "GET",
+            data: {
+                NRP: nrpLoginAs,
+                AKRONIM: akronim
+            },
+            success: function (result) {
+                //return result;
+                //alert(result);
+                if (result == "true") {
+                    createLog(nameApps, "CREATE");
+                    setCookiesLoginAs(nrpLoginAs, "NRP_" + akronim);
+
+                    window.open(url, '_blank')
+                    ShowHideModal("loginAsModal");
+                } else {
+                    alert("NRP not found!");
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('error: ' + jqXHR.status);
+            }
+        });
+    }
+
+    function redirectToUrl(url, nameApps, loginAs, akronim) {
+        akronim = akronim.replace(/[^a-zA-Z0-9 ]/g, "").replace(/ /g, "");
+        document.getElementById("nrpLoginAs").value = "";
+        if (loginAs == "true") {
+            /*var viewModel = kendo.observable({
+                APP_ID: dataItem.APP_ID
+            });
+            kendo.bind($("#loginAsModal"), viewModel);
+            $("#loginAsModal .modal-title").text("Login As");*/
+            ShowHideModal("loginAsModal");
+
+            document.getElementById("btnLoginAs").onclick = function () {
+                let nrpLoginAs = document.getElementById("nrpLoginAs").value;
+                if (nrpLoginAs == "") {
+                    alert("NRP belum diisi!");
+                }else{
+                    cekUserApps(url, nameApps, nrpLoginAs, akronim);
+                }
+            };
+        }else {
+            createLog(nameApps, "CREATE");
+            setCookiesLoginAs("", "NRP_" + akronim);
+
+            window.open(url, '_blank')
+        }
+    }
+</script>

@@ -1,0 +1,128 @@
+﻿<style>
+    .x-dialog {
+        padding: 16px 20px 20px;
+        text-align: center;
+    }
+
+    .x-icon-circle {
+        width: 60px;
+        height: 60px;
+        border: 3px solid #f4b042;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .x-icon-download {
+        width: 28px;
+        height: 28px;
+        display: block;
+        background: no-repeat center/contain url("data:image/svg+xml;utf8,\
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f4b042' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>\
+    <path d='M12 3v12'/><path d='M7 10l5 5 5-5'/><path d='M5 21h14'/></svg>");
+    }
+    .x-title {
+        font-weight: 700;
+        font-size: 18px;
+        margin: 6px 0 4px;
+    }
+
+    .x-sub {
+        color: #6b7280;
+        margin-bottom: 12px;
+    }
+
+    .x-field {
+        margin: 8px 0 2px;
+        text-align: left;
+    }
+
+    .x-actions {
+        margin-top: 14px;
+        display: flex;
+        justify-content: center;
+    }
+
+        .x-actions .k-button {
+            padding: 8px 16px;
+        }
+
+    .k-button-solid-primary.k-rounded-full {
+        border-radius: 9999px;
+    }
+
+    
+</style>
+
+<div id="downloadWindow">
+    <div class="x-dialog">
+        <input type="hidden" id="headerId" value="@ViewBag.HeaderId" />
+        <input type="hidden" id="mbrVersion" value="@ViewBag.MbrVersion" />
+        <div class="x-icon-wrap d-flex flex-column align-items-center text-center">
+            <div class="x-icon-circle">
+                <span class="x-icon-download" aria-hidden="true"></span>
+            </div>
+        </div>
+        <div class="x-title">Download Data</div>
+        <div class="x-sub">Please choose the type of data you want to download:</div>
+
+        <div class="x-field">
+            <input id="monthSelect" />
+        </div>
+
+       
+        <div class="x-actions">
+            <button id="btnDownload" class="k-button k-button-solid-primary btn-blue btn-round-sm btn-h-36">
+                <span class="k-svg-icon k-svg-i-download me-2"></span>
+                Download
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $("#btnDownload").kendoButton({ icon: "download" });
+        // Month dropdown
+        var months = [
+            { text: "January", value: "1" }, { text: "February", value: "2" },
+            { text: "March", value: "3" },   { text: "April", value: "4" },
+            { text: "May", value: "5" },     { text: "June", value: "6" },
+            { text: "July", value: "7" },    { text: "August", value: "8" },
+            { text: "September", value: "9" },{ text: "October", value: "10" },
+            { text: "November", value: "11" },{ text: "December", value: "12" }
+        ];
+        var monthDd = $("#monthSelect").kendoDropDownList({
+            optionLabel: "Select Month",
+            dataTextField: "text",
+            dataValueField: "value",
+            dataSource: months
+        }).data("kendoDropDownList");
+
+
+       $("#btnDownload").on("click", function () {
+          const val = monthDd ? monthDd.value() : null;
+          if (!val) {
+            kendo.alert("Please select a month first.");
+            return;
+          }
+
+          const month = parseInt(val, 10);
+          const headerIdRaw = $("#headerId").val();
+          const headerId = headerIdRaw ? Number(headerIdRaw) : 0;
+          const mbrVersion = $("#mbrVersion").val();
+
+          if (!headerId || Number.isNaN(headerId)) {
+            kendo.alert("HeaderId is missing.");
+            return;
+          }
+
+         const url = '@Url.Action("DownloadIntervention", "ProductionScheduleIntervention")'
+                    + '?headerId=' + encodeURIComponent(headerId)
+                    + '&month=' + encodeURIComponent(month)
+                    + '&mbrVersion=' + encodeURIComponent(mbrVersion);
+         window.location.assign(url);
+    });
+    });
+</script>

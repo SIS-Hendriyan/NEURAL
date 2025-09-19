@@ -1,0 +1,1102 @@
+@model object
+@{
+    ViewData["Title"] = "Join Survey";
+    var filterOptions = ViewBag.FilterOptions;
+    var emailSettings = ViewBag.EmailSettings;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+
+    <!-- Custom Professional Styling matching React Design -->
+    <style>
+        body {
+            background: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .main-container {
+            max-width: 1792px;
+            margin: 0 auto;
+            padding: 24px;
+            min-height: 100vh;
+        }
+        
+        /* Header Card */
+        .header-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+        }
+        
+        .header-title {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+        
+        /* Filter Panel - Matching React Design */
+        .filter-panel {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .filter-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .filter-icon {
+            width: 20px;
+            height: 20px;
+            color: #64748b;
+        }
+        
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .filter-dropdown {
+            height: 40px !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 6px !important;
+            background: white !important;
+            font-size: 0.875rem !important;
+        }
+        
+        .filter-dropdown:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+        }
+        
+        /* Action Toolbar - Matching React Design */
+        .action-toolbar {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-primary {
+            background: #148484 !important;
+            border: 1px solid #148484 !important;
+            color: white !important;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        
+        .btn-primary:hover {
+            background: #0d6666 !important;
+            border-color: #0d6666 !important;
+            opacity: 0.9;
+        }
+        
+        .btn-secondary {
+            background: white !important;
+            border: 1px solid #d1d5db !important;
+            color: #374151 !important;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .btn-secondary:hover {
+            background: #f9fafb !important;
+            border-color: #9ca3af !important;
+        }
+        
+        /* Grid Container - Matching React Design */
+        .grid-container {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        
+        .k-grid-header th {
+            background: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+            font-weight: 600 !important;
+            color: #374151 !important;
+            padding: 12px 16px !important;
+            font-size: 0.875rem !important;
+        }
+        
+        .k-grid-header th:hover {
+            background: #f1f5f9 !important;
+        }
+        
+        .k-grid td {
+            padding: 12px 16px !important;
+            border-color: #f1f5f9 !important;
+            font-size: 0.875rem !important;
+        }
+        
+        .k-grid tr:hover {
+            background: #f8fafc !important;
+        }
+        
+        /* Status Icons */
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .status-sent {
+            color: #10b981;
+        }
+        
+        .status-pending {
+            color: #ef4444;
+        }
+        
+        /* Action Buttons in Grid */
+        .action-btn {
+            padding: 6px !important;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 4px !important;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 0 2px;
+        }
+        
+        .action-btn.view:hover {
+            background: #dbeafe !important;
+            color: #3b82f6 !important;
+        }
+        
+        .action-btn.delete:hover {
+            background: #fee2e2 !important;
+            color: #dc2626 !important;
+        }
+        
+        /* Alert Messages */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+        }
+        
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #34d399;
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #f87171;
+        }
+
+        /* Modal Styles - Matching React Design */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000 !important;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            max-width: 90vw;
+            width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            padding: 24px 24px 0;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .modal-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            margin: 0;
+        }
+
+        .modal-description {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #9ca3af;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            color: #6b7280;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        /* Report Table Styles - Matching React Design */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .report-table th,
+        .report-table td {
+            border: 1px solid #e5e7eb;
+            padding: 8px 12px;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        .report-table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .report-table .site-header {
+            background: #148484;
+            color: white;
+            font-weight: 600;
+        }
+
+        .report-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        /* Header Controls */
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            gap: 16px;
+        }
+
+        .header-controls-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* Email Grid Styles */
+        .email-grid-container {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-data-message {
+            text-align: center;
+            padding: 48px 24px;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        /* Color-coded rows for different data types */
+        .bg-blue-50 { background-color: rgba(239, 246, 255, 0.5); }
+        .bg-green-100 { background-color: rgba(220, 252, 231, 0.5); }
+        .bg-purple-100 { background-color: rgba(243, 232, 255, 0.5); }
+        .bg-orange-100 { background-color: rgba(255, 237, 213, 0.5); }
+        .bg-red-100 { background-color: rgba(254, 226, 226, 0.5); }
+        .bg-teal-100 { background-color: rgba(204, 251, 241, 0.5); }
+        .bg-gray-100 { background-color: rgba(243, 244, 246, 0.5); }
+
+        .k-icon.k-i-edit.icon-blue {
+            color: #3b82f6;
+        }
+
+        .k-icon.k-i-trash.icon-red {
+            color: #dc2626;
+        }
+
+        .modal-xl {
+            width: 90% !important;
+            max-width: 1400px !important; /* sesuaikan kebutuhan */
+        }
+
+        /* ===== Bigger action icons (table) ===== */
+        .action-buttons {
+            gap: 8px;
+        }
+        /* beri jarak sedikit lebih longgar */
+        .action-btn {
+            width: 40px; /* sebelumnya 32px */
+            height: 40px;
+            border-radius: 8px; /* sedikit lebih membulat */
+        }
+
+        .action-btn .bx {
+            font-size: 22px; /* BESARKAN ICON BOXICONS */
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* (Opsional) warna ikon per-aksi */
+        /* Hover tetap halus */
+        .action-btn:hover {
+            background: #f1f5f9;
+            transform: translateY(-1px);
+        }
+
+        /* ===== Jika pakai command column Kendo (email grid) ===== */
+        .k-grid .k-grid-edit .bx,
+        .k-grid .k-grid-delete .bx {
+            font-size: 20px; /* besarkan icon edit/delete di email grid */
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header-card">
+            <h1 class="header-title">Join Survey</h1>
+        </div>
+
+        <!-- Success/Error Messages -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">
+                <span>✓</span>
+                @TempData["SuccessMessage"]
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-error">
+                <span>⚠</span>
+                @TempData["ErrorMessage"]
+            </div>
+        }
+
+        <!-- Filter Panel -->
+        <div class="filter-panel">
+            <div class="filter-header">
+                <div class="filter-title">
+                    <svg class="filter-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"></path>
+                    </svg>
+                    Filters & Search
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button id="applyFiltersBtn" class="k-button btn-primary">
+                        <span class="bx bx-check"></span>
+                        Apply
+                    </button>
+                    <button id="clearFiltersBtn" class="k-button btn-secondary" style="display: none;">
+                        <span class="k-icon k-i-x"></span>
+                        Clear All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Dropdowns -->
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label class="filter-label">Jobsite</label>
+                    <input id="jobsiteFilter" class="filter-dropdown" />
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Year</label>
+                    <input id="yearFilter" class="filter-dropdown" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Toolbar -->
+        <div class="action-toolbar">
+            <div class="action-buttons">
+                <button id="downloadTemplateBtn" class="k-button btn-primary">
+                    <span class="bx bxs-download"></span>
+                    Download Template
+                </button>
+                <button id="uploadBtn" class="k-button btn-primary">
+                    <span class="bx bx-upload"></span>
+                    Upload
+                </button>
+                <button id="viewReportBtn" class="k-button btn-primary">
+                    <span class="bx bx-file"></span>
+                    View Report
+                </button>
+                <button id="settingEmailBtn" class="k-button btn-primary">
+                    <span class="bx bx-cog"></span>
+                    Setting Email
+                </button>
+            </div>
+        </div>
+
+        <!-- Kendo Grid -->
+        <div class="grid-container">
+            <div id="surveyGrid"></div>
+        </div>
+    </div>
+
+    <!-- View Report Modal -->
+    <div id="viewReportModal" class="modal-overlay">
+        <div class="modal-content modal-xl">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Join Survey</h3>
+                    <p class="modal-description">
+                        Comprehensive survey data analysis with measurement metrics, volume calculations, and performance tracking for mining operations.
+                    </p>
+                </div>
+                <button class="modal-close" onclick="closeViewReportModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Header Controls -->
+                <div class="header-controls">
+                    <div class="header-controls-left">
+                        <div class="filter-group">
+                            <label class="filter-label">Year</label>
+                            <input id="reportYearFilter" class="filter-dropdown" style="width: 150px;" />
+                        </div>
+                    </div>
+                    <button id="sendEmailBtn" class="k-button btn-primary">
+                        <span class="bx bx-mail-send"></span>
+                        Send Email
+                    </button>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table class="report-table">
+                        <thead>
+                            <tr class="site-header">
+                                <th rowspan="2" style="min-width: 120px;">SITE</th>
+                                <th rowspan="2" style="min-width: 100px;">AREA</th>
+                                <th rowspan="2" style="min-width: 80px;">PIT</th>
+                                <th rowspan="2" style="min-width: 120px;">UNIT</th>
+                                <th rowspan="2" style="min-width: 180px;">PROCESS</th>
+                                <th colspan="12">Month</th>
+                                <th rowspan="2" style="min-width: 100px;">Total</th>
+                            </tr>
+                            <tr class="site-header">
+                                <th style="min-width: 80px;">Jan</th>
+                                <th style="min-width: 80px;">Feb</th>
+                                <th style="min-width: 80px;">Mar</th>
+                                <th style="min-width: 80px;">Apr</th>
+                                <th style="min-width: 80px;">May</th>
+                                <th style="min-width: 80px;">Jun</th>
+                                <th style="min-width: 80px;">Jul</th>
+                                <th style="min-width: 80px;">Aug</th>
+                                <th style="min-width: 80px;">Sep</th>
+                                <th style="min-width: 80px;">Oct</th>
+                                <th style="min-width: 80px;">Nov</th>
+                                <th style="min-width: 80px;">Dec</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportTableBody">
+                            <!-- Report data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Settings Modal -->
+    <div id="emailSettingsModal" class="modal-overlay">
+        <div class="modal-content modal-xl">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Email Settings Configuration</h3>
+                    <p class="modal-description">
+                        Configure email settings for each jobsite to manage automatic report delivery.
+                    </p>
+                </div>
+                <button class="modal-close" onclick="closeEmailSettingsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
+                    <button id="createEmailSettingBtn" class="k-button btn-primary">
+                        <span class="bx bx-plus"></span>
+                        Create Setting Email
+                    </button>
+                </div>
+                <div class="email-grid-container">
+                    <div id="emailGrid"></div>
+                </div>
+                <div id="noEmailSettings" class="no-data-message" style="display: none;">
+                    No email settings configured. Click "Create Setting Email" to add one.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            let appliedFilters = {
+                year: 'all',
+                jobsite: 'all'
+            };
+            let pendingFilters = {
+                year: 'all',
+                jobsite: 'all'
+            };
+
+            // Initialize filter dropdowns
+            $("#jobsiteFilter").kendoDropDownList({
+                dataSource: {
+                    data: [
+                        { text: "All Jobsites", value: "all" },
+                        { text: "ADMO", value: "ADMO" },
+                        { text: "SERA", value: "SERA" },
+                        { text: "MACO", value: "MACO" },
+                        { text: "WARA", value: "WARA" },
+                        { text: "SOUTH", value: "SOUTH" }
+                    ]
+                },
+                dataTextField: "text",
+                dataValueField: "value",
+                value: "all",
+                change: function () {
+                    pendingFilters.jobsite = this.value();
+                    updateFilterStatus();
+                }
+            });
+
+            $("#yearFilter").kendoDatePicker({
+                start: "decade",
+                depth: "decade",
+                format: "yyyy",
+                footer: false,
+                placeholder: "Select Year",
+                change: function(e) {
+                    pendingFilters.year = this.value();
+                    updateFilterStatus();
+                }
+            });
+
+            // Apply filters
+            $("#applyFiltersBtn").click(function() {
+                appliedFilters = { ...pendingFilters };
+                refreshGrid();
+            });
+
+            // Clear filters
+            $("#clearFiltersBtn").click(function() {
+                $("#jobsiteFilter").data("kendoDropDownList").value("all");
+                $("#yearFilter").data("kendoDropDownList").value("all");
+                pendingFilters = {
+                    year: 'all',
+                    jobsite: 'all'
+                };
+                appliedFilters = {
+                    year: 'all',
+                    jobsite: 'all'
+                };
+                refreshGrid();
+                updateFilterStatus();
+            });
+
+            // Initialize Kendo Grid with mock data
+            $("#surveyGrid").kendoGrid({
+                dataSource: {
+                    data: [
+                        {
+                            Id: 1,
+                            Month: "January",
+                            Area: "CENTRAL",
+                            Pit: "PIT-A",
+                            Process: "OB Removal",
+                            Survey: "JS",
+                            Volume: 5665333,
+                            Horizontal: 2.5,
+                            Vertical: 1.8,
+                            Weighted: 2.1,
+                            StatusEmail: true
+                        },
+                        {
+                            Id: 2,
+                            Month: "February",
+                            Area: "CENTRAL",
+                            Pit: "PIT-A",
+                            Process: "Coal Mining",
+                            Survey: "CLAIM",
+                            Volume: 1630481,
+                            Horizontal: 1.9,
+                            Vertical: 2.1,
+                            Weighted: 2.0,
+                            StatusEmail: false
+                        },
+                        {
+                            Id: 3,
+                            Month: "March",
+                            Area: "TUTUPAN",
+                            Pit: "PIT-B",
+                            Process: "Coal Transport",
+                            Survey: "JS",
+                            Volume: 1694162,
+                            Horizontal: 12.5,
+                            Vertical: 3.2,
+                            Weighted: 7.8,
+                            StatusEmail: true
+                        },
+                        {
+                            Id: 4,
+                            Month: "April",
+                            Area: "NORTH",
+                            Pit: "PIT-C",
+                            Process: "Outpit",
+                            Survey: "CLAIM",
+                            Volume: 441659,
+                            Horizontal: 0.8,
+                            Vertical: 0.6,
+                            Weighted: 0.7,
+                            StatusEmail: false
+                        }
+                    ],
+                    pageSize: 10
+                },
+                height: 600,
+                sortable: true,
+                pageable: {
+                    refresh: true,
+                    pageSizes: [10, 20, 50],
+                    buttonCount: 5
+                },
+                columns: [
+                    {
+                        field: "Month",
+                        title: "Month",
+                        width: 120
+                    },
+                    {
+                        field: "Area",
+                        title: "Area",
+                        width: 150
+                    },
+                    {
+                        field: "Pit",
+                        title: "PIT",
+                        width: 120
+                    },
+                    {
+                        field: "Process",
+                        title: "Process",
+                        width: 200
+                    },
+                    {
+                        field: "Survey",
+                        title: "Survey",
+                        width: 120
+                    },
+                    {
+                        field: "Volume",
+                        title: "Volume",
+                        width: 120,
+                        template: function(dataItem) {
+                            return dataItem.Volume ? dataItem.Volume.toLocaleString() : "-";
+                        },
+                        attributes: { style: "text-align: right;" }
+                    },
+                    {
+                        field: "Horizontal",
+                        title: "Horizontal",
+                        width: 120
+                    },
+                    {
+                        field: "Vertical",
+                        title: "Vertical",
+                        width: 120
+                    },
+                    {
+                        field: "Weighted",
+                        title: "Weighted",
+                        width: 120
+                    },
+                    {
+                        field: "StatusEmail",
+                        title: "Status Email",
+                        width: 120,
+                        template: function (dataItem) {
+                            return dataItem.StatusEmail ? 
+                                '<div style="text-align: center;"><span class="status-icon status-sent" title="Email sent">✓</span></div>' : 
+                                '<div style="text-align: center;"><span class="status-icon status-pending" title="Email not sent">✗</span></div>';
+                        }
+                    },
+                    {
+                        field: "Actions",
+                        title: "Actions",
+                        width: 100,
+                        sortable: false,
+                        template: function(dataItem) {
+                            return '<div style="display: flex; gap: 4px; align-items: center; justify-content: center;">' +
+                                   '<button class="action-btn delete" onclick="deleteRow(' + dataItem.Id + ')" title="Delete">' +
+                                   '<span class="bx bxs-trash"></span>' +
+                                   '</button>' +
+                                   '</div>';
+                        }
+                    }
+                ]
+            });
+
+            // Helper functions
+            function refreshGrid() {
+                $("#surveyGrid").data("kendoGrid").dataSource.read();
+            }
+
+            function updateFilterStatus() {
+                var hasFilters = pendingFilters.year !== "all" ||
+                               pendingFilters.jobsite !== "all";
+                
+                $("#clearFiltersBtn").toggle(hasFilters);
+            }
+
+            // Button event handlers
+            $("#downloadTemplateBtn").click(function () {
+                alert("Downloading template...");
+            });
+
+            $("#uploadBtn").click(function () {
+                alert("Opening upload functionality...");
+            });
+
+            $("#viewReportBtn").click(function () {
+                openViewReportModal();
+            });
+
+            $("#settingEmailBtn").click(function () {
+                openEmailSettingsModal();
+            });
+
+            // Modal functions
+            window.openViewReportModal = function() {
+                initializeReportYearFilter();
+                loadReportData();
+                $("#viewReportModal").css('display', 'flex');
+            };
+
+            window.closeViewReportModal = function() {
+                $("#viewReportModal").hide();
+            };
+
+            window.openEmailSettingsModal = function() {
+                initializeEmailGrid();
+                $("#emailSettingsModal").css('display', 'flex');
+            };
+
+            window.closeEmailSettingsModal = function() {
+                $("#emailSettingsModal").hide();
+            };
+
+            function initializeReportYearFilter() {
+                $("#reportYearFilter").kendoDropDownList({
+                    dataSource: {
+                        data: [
+                            { text: "2024", value: "2024" },
+                            { text: "2023", value: "2023" },
+                            { text: "2022", value: "2022" },
+                            { text: "2021", value: "2021" }
+                        ]
+                    },
+                    dataTextField: "text",
+                    dataValueField: "value",
+                    value: new Date().getFullYear().toString()
+                });
+            }
+
+            function loadReportData() {
+                var reportData = [
+                    {
+                        site: "ADMO/TUTUPAN/CENTRAL",
+                        area: "CENTRAL", 
+                        pit: "PIT-A",
+                        unit: "Production",
+                        process: "OB Removal JS",
+                        months: [5665333, 6251000, 6037339, 7256091, 8544045, 8797395, 10249477, 3197827, 0, 0, 0, 0],
+                        total: 55998507,
+                        className: "bg-blue-50"
+                    },
+                    {
+                        site: "ADMO/TUTUPAN/CENTRAL",
+                        area: "CENTRAL",
+                        pit: "PIT-A", 
+                        unit: "Production",
+                        process: "Coal Mining JS",
+                        months: [1630481, 1542503, 1694162, 1719323, 2108220, 1894308, 2147185, 1563051, 0, 0, 0, 0],
+                        total: 14299233,
+                        className: "bg-green-100"
+                    },
+                    {
+                        site: "ADMO/TUTUPAN/CENTRAL",
+                        area: "CENTRAL",
+                        pit: "PIT-B",
+                        unit: "Production", 
+                        process: "Coal Transport JS",
+                        months: [1630481, 1542503, 1694162, 1719323, 2108220, 1894308, 2147185, 1563051, 0, 0, 0, 0],
+                        total: 14299233,
+                        className: "bg-orange-100"
+                    },
+                    {
+                        site: "ADMO/TUTUPAN/CENTRAL",
+                        area: "CENTRAL",
+                        pit: "PIT-B",
+                        unit: "Distance",
+                        process: "OB Removal (m)", 
+                        months: [2.5, 2.8, 2.3, 2.6, 2.9, 3.1, 3.4, 2.7, 0, 0, 0, 0],
+                        total: 2.8,
+                        className: "bg-teal-100"
+                    }
+                ];
+
+                var tbody = $("#reportTableBody");
+                tbody.empty();
+
+                reportData.forEach(function(row) {
+                    var tr = $("<tr class='" + row.className + "'>");
+                    tr.append($("<td>").text(row.site));
+                    tr.append($("<td>").text(row.area));
+                    tr.append($("<td>").text(row.pit));
+                    tr.append($("<td>").text(row.unit));
+                    tr.append($("<td style='font-weight: 600;'>").text(row.process));
+                    
+                    row.months.forEach(function(value) {
+                        var displayValue = value === 0 ? "-" : (typeof value === 'number' && value > 100 ? value.toLocaleString() : value);
+                        tr.append($("<td style='text-align: right;'>").text(displayValue));
+                    });
+                    
+                    var totalValue = typeof row.total === 'number' && row.total > 100 ? row.total.toLocaleString() : row.total;
+                    tr.append($("<td style='font-weight: 600; text-align: right;'>").text(totalValue));
+                    tbody.append(tr);
+                });
+            }
+
+            function initializeEmailGrid() {
+                var emailData = [
+                    { id: 1, jobsite: "ADMO", emailTo: "admin@admo.com", emailCC: "supervisor@admo.com" },
+                    { id: 2, jobsite: "SERA", emailTo: "admin@sera.com;manager@sera.com", emailCC: "director@sera.com" },
+                    { id: 3, jobsite: "MACO", emailTo: "admin@maco.com", emailCC: "" }
+                ];
+
+                $("#emailGrid").kendoGrid({
+                    dataSource: {
+                        data: emailData,
+                        schema: {
+                            model: {
+                                id: "id",
+                                fields: {
+                                    id: { type: "number", editable: false },
+                                    jobsite: { type: "string", validation: { required: true }},
+                                    emailTo: { type: "string", validation: { required: true }},
+                                    emailCC: { type: "string" }
+                                }
+                            }
+                        }
+                    },
+                    height: 400,
+                    sortable: true,
+                    editable: "incell",
+                            columns: [
+                              {
+                                field: "jobsite",
+                                title: "Jobsite",
+                                width: 150,
+                                template: "<span style='font-weight: 500;'>#= jobsite #</span>"
+                              },
+                              {
+                                field: "emailTo",
+                                title: "Email To",
+                                width: 250,
+                                template: function(dataItem) {
+                                  var emails = dataItem.emailTo.split(';').map(e => e.trim()).filter(e => e);
+                                  return emails.map(email =>
+                                    "<div style='font-size: 14px; color: #374151;'>" + email + "</div>"
+                                  ).join('');
+                                }
+                              },
+                              {
+                                field: "emailCC",
+                                title: "Email CC",
+                                width: 250,
+                                template: function(dataItem) {
+                                  if (!dataItem.emailCC || dataItem.emailCC.trim() === '') {
+                                    return "<div style='color: #9ca3af; font-style: italic;'>-</div>";
+                                  }
+                                  var emails = dataItem.emailCC.split(';').map(e => e.trim()).filter(e => e);
+                                  return emails.map(email =>
+                                    "<div style='font-size: 14px; color: #6b7280;'>" + email + "</div>"
+                                  ).join('');
+                                }
+                              },
+                              {
+                                command: [
+                                  {
+                                    name: "edit",
+                                    text: { edit: "", cancel: "", update: "" },
+                                    // ESCAPE '#' menjadi '\#'
+                                    template: '<a class="k-button-icontext k-grid-edit" style="min-width: auto; padding: 4px 8px;" title="Edit"><span class="bx bxs-edit"></span></a>'
+                                  },
+                                  {
+                                    name: "destroy",
+                                    text: "",
+                                    // ESCAPE '#' menjadi '\#'
+                                    template: '<a class="k-button-icontext k-grid-delete" style="min-width: auto; padding: 4px 8px;" title="Delete"><span class="bx bxs-trash"></span></a>'
+                                  }
+                                ],
+                                title: "Actions",
+                                width: 120
+                              }
+                            ],
+                    save: function(e) {
+                        setTimeout(function() {
+                            alert("Email setting updated successfully");
+                        }, 100);
+                    },
+                    remove: function(e) {
+                        setTimeout(function() {
+                            alert("Email setting deleted successfully");
+                        }, 100);
+                    }
+                });
+
+                updateNoDataMessage();
+            }
+
+            function updateNoDataMessage() {
+                var grid = $("#emailGrid").data("kendoGrid");
+                if (grid && grid.dataSource.data().length === 0) {
+                    $("#noEmailSettings").show();
+                    $("#emailGrid").hide();
+                } else {
+                    $("#noEmailSettings").hide();
+                    $("#emailGrid").show();
+                }
+            }
+
+            // Action functions
+            window.deleteRow = function(id) {
+                if (confirm("Are you sure you want to delete this survey?")) {
+                    var grid = $("#surveyGrid").data("kendoGrid");
+                    var dataSource = grid.dataSource;
+                    var dataItem = dataSource.get(id);
+                    if (dataItem) {
+                        dataSource.remove(dataItem);
+                        alert("Survey deleted successfully");
+                    }
+                }
+            };
+
+            // Send Email button handler
+            $(document).on('click', '#sendEmailBtn', function() {
+                var selectedYear = $("#reportYearFilter").data("kendoDropDownList").value();
+                alert("Survey report email sent for year " + selectedYear);
+            });
+
+            // Create Email Setting button handler
+            $(document).on('click', '#createEmailSettingBtn', function() {
+                var grid = $("#emailGrid").data("kendoGrid");
+                if (grid) {
+                    grid.addRow();
+                }
+            });
+
+            // Close modals when clicking overlay
+            $('.modal-overlay').click(function(e) {
+                if (e.target === this) {
+                    $(this).hide();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

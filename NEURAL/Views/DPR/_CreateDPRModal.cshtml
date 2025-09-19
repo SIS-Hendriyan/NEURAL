@@ -1,0 +1,397 @@
+﻿<!-- Create DPR Modal -->
+<div class="modal fade" id="createDPRModal" tabindex="-1" aria-labelledby="createDPRModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                <h5 class="modal-title" id="createDPRModalLabel">
+                    <i class="k-icon k-i-plus"></i> Create New DPR
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createDPRForm">
+                    <!-- Header Form -->
+                    <div class="p-3 mb-4" style="background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <h6 class="mb-3" style="color: #374151; font-weight: 600;">DPR Information</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">Jobsite</label>
+                                <select id="createJobsite" name="Jobsite" required style="width: 100%;"></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Date</label>
+                                <input id="createDate" name="Date" required style="width: 100%;" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Status</label>
+                                <select id="createStatus" name="Status" required style="width: 100%;">
+                                    <option value="Quick">Quick</option>
+                                    <option value="Fix">Fix</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div id="createDPRTabs">
+                        <ul>
+                            <li class="k-state-active">PRODUCTION</li>
+                            <li>MINING</li>
+                            <li>TRANSPORT</li>
+                            <li>STOCKPILE</li>
+                            <li>GLOBAL WEATHER</li>
+                        </ul>
+
+                        <!-- Production Tab -->
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Production Data</h6>
+                                <button type="button" class="btn btn-primary-custom btn-sm" onclick="addProductionRow()">
+                                    <i class="k-icon k-i-plus"></i> Add Row
+                                </button>
+                            </div>
+                            <div id="productionGrid"></div>
+                        </div>
+
+                        <!-- Mining Tab -->
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Mining Data</h6>
+                                <button type="button" class="btn btn-primary-custom btn-sm" onclick="addMiningRow()">
+                                    <i class="k-icon k-i-plus"></i> Add Row
+                                </button>
+                            </div>
+                            <div id="miningGrid"></div>
+                        </div>
+
+                        <!-- Transport Tab -->
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Transport Data</h6>
+                                <button type="button" class="btn btn-primary-custom btn-sm" onclick="addTransportRow()">
+                                    <i class="k-icon k-i-plus"></i> Add Row
+                                </button>
+                            </div>
+                            <div id="transportGrid"></div>
+                        </div>
+
+                        <!-- Stockpile Tab -->
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Stockpile Data</h6>
+                                <button type="button" class="btn btn-primary-custom btn-sm" onclick="addStockpileRow()">
+                                    <i class="k-icon k-i-plus"></i> Add Row
+                                </button>
+                            </div>
+                            <div id="stockpileGrid"></div>
+                        </div>
+
+                        <!-- Global Weather Tab -->
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Global Weather Data</h6>
+                                <button type="button" class="btn btn-primary-custom btn-sm" onclick="addWeatherRow()">
+                                    <i class="k-icon k-i-plus"></i> Add Row
+                                </button>
+                            </div>
+                            <div id="globalWeatherGrid"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-custom" onclick="saveDPR()">
+                    <i class="k-icon k-i-save"></i> Save DPR
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize Create DPR Modal
+    $(document).ready(function() {
+        // Initialize dropdowns
+        $("#createJobsite").kendoDropDownList({
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/DPR/GetDropdownOptions/jobsite",
+                        dataType: "json"
+                    }
+                }
+            },
+            optionLabel: "Select Jobsite"
+        });
+
+        $("#createDate").kendoDatePicker({
+            value: new Date(),
+            format: "dd/MM/yyyy"
+        });
+
+        $("#createStatus").kendoDropDownList({
+            value: "Quick"
+        });
+
+        // Initialize tabs
+        $("#createDPRTabs").kendoTabStrip({
+            animation: {
+                open: {
+                    effects: "fadeIn"
+                }
+            }
+        });
+
+        // Initialize grids
+        initializeCreateGrids();
+    });
+
+    function initializeCreateGrids() {
+        // Production Grid
+        $("#productionGrid").kendoGrid({
+            dataSource: {
+                data: [],
+                schema: {
+                    model: {
+                        id: "Id",
+                        fields: {
+                            Area: { type: "string" },
+                            Pit: { type: "string" },
+                            Process: { type: "string" },
+                            Production: { type: "number" },
+                            WorkingHours: { type: "number" }
+                        }
+                    }
+                }
+            },
+            columns: [
+                { field: "Area", title: "Area", width: "120px" },
+                { field: "Pit", title: "Pit", width: "120px" },
+                { field: "Process", title: "Process", width: "120px" },
+                { field: "Production", title: "Production", width: "120px", format: "{0:n2}" },
+                { field: "WorkingHours", title: "Working Hours", width: "120px", format: "{0:n2}" },
+                {
+                    command: [
+                        { name: "edit", text: "Edit" },
+                        { name: "destroy", text: "Delete" }
+                    ],
+                    title: "Actions",
+                    width: "200px"
+                }
+            ],
+            editable: "inline",
+            toolbar: ["create"]
+        });
+
+        // Mining Grid
+        $("#miningGrid").kendoGrid({
+            dataSource: {
+                data: [],
+                schema: {
+                    model: {
+                        id: "Id",
+                        fields: {
+                            Area: { type: "string" },
+                            Pit: { type: "string" },
+                            Process: { type: "string" },
+                            S1: { type: "number" },
+                            S2: { type: "number" },
+                            S3: { type: "number" },
+                            S4: { type: "number" },
+                            S5: { type: "number" },
+                            RC: { type: "number" },
+                            BD: { type: "number" },
+                            Distance: { type: "number" },
+                            TravelSpeed: { type: "number" },
+                            Payload: { type: "number" },
+                            TripPerDay: { type: "number" },
+                            CycleTime: { type: "number" }
+                        }
+                    }
+                }
+            },
+            columns: [
+                { field: "Area", title: "Area", width: "100px" },
+                { field: "Pit", title: "Pit", width: "100px" },
+                { field: "Process", title: "Process", width: "100px" },
+                { field: "S1", title: "S1", width: "80px", format: "{0:n2}" },
+                { field: "S2", title: "S2", width: "80px", format: "{0:n2}" },
+                { field: "S3", title: "S3", width: "80px", format: "{0:n2}" },
+                { field: "S4", title: "S4", width: "80px", format: "{0:n2}" },
+                { field: "S5", title: "S5", width: "80px", format: "{0:n2}" },
+                { field: "RC", title: "RC", width: "80px", format: "{0:n2}" },
+                { field: "BD", title: "BD", width: "80px", format: "{0:n2}" },
+                { field: "Distance", title: "Distance", width: "100px", format: "{0:n2}" },
+                { field: "TravelSpeed", title: "Travel Speed", width: "120px", format: "{0:n2}" },
+                { field: "Payload", title: "Payload", width: "100px", format: "{0:n2}" },
+                { field: "TripPerDay", title: "Trip/Day", width: "100px", format: "{0:n2}" },
+                { field: "CycleTime", title: "Cycle Time", width: "120px", format: "{0:n2}" },
+                {
+                    command: [
+                        { name: "edit", text: "Edit" },
+                        { name: "destroy", text: "Delete" }
+                    ],
+                    title: "Actions",
+                    width: "200px"
+                }
+            ],
+            editable: "inline",
+            toolbar: ["create"],
+            scrollable: true
+        });
+
+        // Transport Grid
+        $("#transportGrid").kendoGrid({
+            dataSource: {
+                data: [],
+                schema: {
+                    model: {
+                        id: "Id",
+                        fields: {
+                            Area: { type: "string" },
+                            Pit: { type: "string" },
+                            Process: { type: "string" },
+                            Distance: { type: "number" },
+                            TravelSpeed: { type: "number" },
+                            Payload: { type: "number" },
+                            TripPerDay: { type: "number" },
+                            CycleTime: { type: "number" },
+                            LoadingTime: { type: "number" },
+                            TravelTime: { type: "number" },
+                            WeightBridge: { type: "number" },
+                            ManuverTime: { type: "number" }
+                        }
+                    }
+                }
+            },
+            columns: [
+                { field: "Area", title: "Area", width: "100px" },
+                { field: "Pit", title: "Pit", width: "100px" },
+                { field: "Process", title: "Process", width: "100px" },
+                { field: "Distance", title: "Distance", width: "100px", format: "{0:n2}" },
+                { field: "TravelSpeed", title: "Travel Speed", width: "120px", format: "{0:n2}" },
+                { field: "Payload", title: "Payload", width: "100px", format: "{0:n2}" },
+                { field: "TripPerDay", title: "Trip/Day", width: "100px", format: "{0:n2}" },
+                { field: "CycleTime", title: "Cycle Time", width: "120px", format: "{0:n2}" },
+                { field: "LoadingTime", title: "Loading Time", width: "120px", format: "{0:n2}" },
+                { field: "TravelTime", title: "Travel Time", width: "120px", format: "{0:n2}" },
+                { field: "WeightBridge", title: "Weight Bridge", width: "120px", format: "{0:n2}" },
+                { field: "ManuverTime", title: "Manuver Time", width: "120px", format: "{0:n2}" },
+                {
+                    command: [
+                        { name: "edit", text: "Edit" },
+                        { name: "destroy", text: "Delete" }
+                    ],
+                    title: "Actions",
+                    width: "200px"
+                }
+            ],
+            editable: "inline",
+            toolbar: ["create"],
+            scrollable: true
+        });
+
+        // Stockpile Grid
+        $("#stockpileGrid").kendoGrid({
+            dataSource: {
+                data: [],
+                schema: {
+                    model: {
+                        id: "Id",
+                        fields: {
+                            Area: { type: "string" },
+                            Pit: { type: "string" },
+                            Process: { type: "string" },
+                            Owner: { type: "string" },
+                            Location: { type: "string" },
+                            StockpileName: { type: "string" },
+                            Stock: { type: "number" },
+                            Capacity: { type: "number" }
+                        }
+                    }
+                }
+            },
+            columns: [
+                { field: "Area", title: "Area", width: "100px" },
+                { field: "Pit", title: "Pit", width: "100px" },
+                { field: "Process", title: "Process", width: "100px" },
+                { field: "Owner", title: "Owner", width: "150px" },
+                { field: "Location", title: "Location", width: "120px" },
+                { field: "StockpileName", title: "Stockpile Name", width: "150px" },
+                { field: "Stock", title: "Stock", width: "100px", format: "{0:n2}" },
+                { field: "Capacity", title: "Capacity", width: "100px", format: "{0:n2}" },
+                {
+                    command: [
+                        { name: "edit", text: "Edit" },
+                        { name: "destroy", text: "Delete" }
+                    ],
+                    title: "Actions",
+                    width: "200px"
+                }
+            ],
+            editable: "inline",
+            toolbar: ["create"]
+        });
+
+        // Global Weather Grid
+        $("#globalWeatherGrid").kendoGrid({
+            dataSource: {
+                data: [],
+                schema: {
+                    model: {
+                        id: "Id",
+                        fields: {
+                            RainHours: { type: "number" },
+                            RainfallPlan: { type: "number" },
+                            RainfallActual: { type: "number" },
+                            Frequency: { type: "number" },
+                            SlipperyTime: { type: "number" }
+                        }
+                    }
+                }
+            },
+            columns: [
+                { field: "RainHours", title: "Rain Hours", width: "120px", format: "{0:n2}" },
+                { field: "RainfallPlan", title: "Rainfall Plan", width: "120px", format: "{0:n2}" },
+                { field: "RainfallActual", title: "Rainfall Actual", width: "130px", format: "{0:n2}" },
+                { field: "Frequency", title: "Frequency", width: "120px", format: "{0:n2}" },
+                { field: "SlipperyTime", title: "Slippery Time", width: "130px", format: "{0:n2}" },
+                {
+                    command: [
+                        { name: "edit", text: "Edit" },
+                        { name: "destroy", text: "Delete" }
+                    ],
+                    title: "Actions",
+                    width: "200px"
+                }
+            ],
+            editable: "inline",
+            toolbar: ["create"]
+        });
+    }
+
+    function saveDPR() {
+        var formData = {
+            Jobsite: $("#createJobsite").data("kendoDropDownList").value(),
+            Date: $("#createDate").data("kendoDatePicker").value(),
+            Status: $("#createStatus").data("kendoDropDownList").value(),
+            Production: $("#productionGrid").data("kendoGrid").dataSource.data(),
+            Mining: $("#miningGrid").data("kendoGrid").dataSource.data(),
+            Transport: $("#transportGrid").data("kendoGrid").dataSource.data(),
+            Stockpile: $("#stockpileGrid").data("kendoGrid").dataSource.data(),
+            GlobalWeather: $("#globalWeatherGrid").data("kendoGrid").dataSource.data()
+        };
+
+        $.post('/DPR/Create', formData, function(response) {
+            if (response.success) {
+                $("#createDPRModal").modal('hide');
+                var mainGrid = $("#dprGrid").data("kendoGrid");
+                mainGrid.dataSource.insert(0, response.data);
+                showNotification(response.message, "success");
+            } else {
+                showNotification(response.message, "error");
+            }
+        });
+    }
+</script>

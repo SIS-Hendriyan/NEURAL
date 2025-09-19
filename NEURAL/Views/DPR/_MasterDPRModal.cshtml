@@ -1,0 +1,342 @@
+﻿<!-- Master DPR Modal -->
+<div class="modal fade" id="masterDPRModal" tabindex="-1" aria-labelledby="masterDPRModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                <h5 class="modal-title" id="masterDPRModalLabel">
+                    <i class="k-icon k-i-grid"></i> Master DPR Configuration
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <p class="text-muted">Configure master data for DPR forms. This data will be used as templates when creating new DPR entries.</p>
+                </div>
+
+                <!-- Master Data Tabs -->
+                <div id="masterDPRTabs">
+                    <ul>
+                        <li class="k-state-active">PRODUCTION</li>
+                        <li>MINING</li>
+                        <li>TRANSPORT</li>
+                        <li>STOCKPILE</li>
+                        <li>GLOBAL WEATHER</li>
+                    </ul>
+
+                    <!-- Master Production Tab -->
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Master Production Data</h6>
+                            <button type="button" class="btn btn-primary-custom btn-sm" onclick="addMasterProductionRow()">
+                                <i class="k-icon k-i-plus"></i> Add Row
+                            </button>
+                        </div>
+                        <div id="masterProductionGrid"></div>
+                    </div>
+
+                    <!-- Master Mining Tab -->
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Master Mining Data</h6>
+                            <button type="button" class="btn btn-primary-custom btn-sm" onclick="addMasterMiningRow()">
+                                <i class="k-icon k-i-plus"></i> Add Row
+                            </button>
+                        </div>
+                        <div id="masterMiningGrid"></div>
+                    </div>
+
+                    <!-- Master Transport Tab -->
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Master Transport Data</h6>
+                            <button type="button" class="btn btn-primary-custom btn-sm" onclick="addMasterTransportRow()">
+                                <i class="k-icon k-i-plus"></i> Add Row
+                            </button>
+                        </div>
+                        <div id="masterTransportGrid"></div>
+                    </div>
+
+                    <!-- Master Stockpile Tab -->
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Master Stockpile Data</h6>
+                            <button type="button" class="btn btn-primary-custom btn-sm" onclick="addMasterStockpileRow()">
+                                <i class="k-icon k-i-plus"></i> Add Row
+                            </button>
+                        </div>
+                        <div id="masterStockpileGrid"></div>
+                    </div>
+
+                    <!-- Master Global Weather Tab -->
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Master Global Weather Data</h6>
+                            <button type="button" class="btn btn-primary-custom btn-sm" onclick="addMasterWeatherRow()">
+                                <i class="k-icon k-i-plus"></i> Add Row
+                            </button>
+                        </div>
+                        <div id="masterGlobalWeatherGrid"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary-custom" onclick="saveAllMasterData()">
+                    <i class="k-icon k-i-save"></i> Save All Master Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize Master DPR Modal
+    $('#masterDPRModal').on('shown.bs.modal', function() {
+        // Initialize tabs
+        $("#masterDPRTabs").kendoTabStrip({
+            animation: {
+                open: {
+                    effects: "fadeIn"
+                }
+            }
+        });
+
+        // Load and initialize master data grids
+        loadMasterData();
+    });
+
+    function loadMasterData() {
+        // Load Master Production Data
+        $.get('/DPR/GetMasterData/production', function(data) {
+            initializeMasterProductionGrid(data);
+        });
+
+        // Load Master Mining Data
+        $.get('/DPR/GetMasterData/mining', function(data) {
+            initializeMasterMiningGrid(data);
+        });
+
+        // Load Master Transport Data
+        $.get('/DPR/GetMasterData/transport', function(data) {
+            initializeMasterTransportGrid(data);
+        });
+
+        // Load Master Stockpile Data
+        $.get('/DPR/GetMasterData/stockpile', function(data) {
+            initializeMasterStockpileGrid(data);
+        });
+
+        // Load Master Global Weather Data
+        $.get('/DPR/GetMasterData/globalweather', function(data) {
+            initializeMasterGlobalWeatherGrid(data);
+        });
+    }
+
+    function initializeMasterProductionGrid(data) {
+        $("#masterProductionGrid").kendoGrid({
+            dataSource: {
+                data: data,
+                schema: {
+                    model: {
+                        id: "Id",
+                        fields: {
+                            Area: { type: "string", validation: { required: true } },
+                            Pit: { type: "string", validation: { required: true } },
+                            Process: { type: "string", validation: { required: true } }
+                        }
+                    }
+                }
+            },
+            columns: [
+                { field: "Area", title: "Area", width: "150px" },
+                { field: "Pit", title: "Pit", width: "150px" },
+                { field: "Process", title: "Process", width: "150px" },
+                {
+                    command: [
+                        { name: "edit", text: "Edit" },
+                        { name: "destroy", text: "Delete" }
+                    ],
+                    title: "Actions",
+                    width: "200px"
+                }
+            ],
+            editable: "inline",
+            toolbar: ["create"],
+            pageable: true
+        });
+    }
+
+    function initializeMasterMiningGrid(data) {
+        $("#masterMiningGrid").kendoGrid({
+            dataSource: {
+                data: data,
+                schema: {
+                    model: {
+                        id: "Id",
+                        fields: {
+                            Area: { type: "string", validation: { required: true } },
+                            Pit: { type: "string", validation: { required: true } },
+                            Process: { type: "string", validation: { required: true } }
+                        }
+                    }
+                }
+            },
+            columns: [
+                { field: "Area", title: "Area", width: "150px" },
+                { field: "Pit", title: "Pit", width: "150px" },
+                { field: "Process", title: "Process", width: "150px" },
+                {
+                    command: [
+                        { name: "edit", text: "Edit" },
+                        { name: "destroy", text: "Delete" }
+                    ],
+                    title: "Actions",
+                    width: "200px"
+                }
+            ],
+            editable: "inline",
+            toolbar: ["create"],
+            pageable: true
+        });
+    }
+
+    function initializeMasterTransportGrid(data) {
+        $("#masterTransportGrid").kendoGrid({
+            dataSource: {
+                data: data,
+                schema: {
+                    model: {
+                        id: "Id",
+                        fields: {
+                            Area: { type: "string", validation: { required: true } },
+                            Pit: { type: "string", validation: { required: true } },
+                            Process: { type: "string", validation: { required: true } }
+                        }
+                    }
+                }
+            },
+            columns: [
+                { field: "Area", title: "Area", width: "150px" },
+                { field: "Pit", title: "Pit", width: "150px" },
+                { field: "Process", title: "Process", width: "150px" },
+                {
+                    command: [
+                        { name: "edit", text: "Edit" },
+                        { name: "destroy", text: "Delete" }
+                    ],
+                    title: "Actions",
+                    width: "200px"
+                }
+            ],
+            editable: "inline",
+            toolbar: ["create"],
+            pageable: true
+        });
+    }
+
+    function initializeMasterStockpileGrid(data) {
+        $("#masterStockpileGrid").kendoGrid({
+            dataSource: {
+                data: data,
+                schema: {
+                    model: {
+                        id: "Id",
+                        fields: {
+                            Area: { type: "string", validation: { required: true } },
+                            Pit: { type: "string", validation: { required: true } },
+                            Process: { type: "string", validation: { required: true } },
+                            Owner: { type: "string", validation: { required: true } },
+                            Location: { type: "string", validation: { required: true } },
+                            StockpileName: { type: "string", validation: { required: true } }
+                        }
+                    }
+                }
+            },
+            columns: [
+                { field: "Area", title: "Area", width: "120px" },
+                { field: "Pit", title: "Pit", width: "120px" },
+                { field: "Process", title: "Process", width: "120px" },
+                { field: "Owner", title: "Owner", width: "150px" },
+                { field: "Location", title: "Location", width: "120px" },
+                { field: "StockpileName", title: "Stockpile Name", width: "150px" },
+                {
+                    command: [
+                        { name: "edit", text: "Edit" },
+                        { name: "destroy", text: "Delete" }
+                    ],
+                    title: "Actions",
+                    width: "200px"
+                }
+            ],
+            editable: "inline",
+            toolbar: ["create"],
+            pageable: true,
+            scrollable: true
+        });
+    }
+
+    function initializeMasterGlobalWeatherGrid(data) {
+        $("#masterGlobalWeatherGrid").kendoGrid({
+            dataSource: {
+                data: data,
+                schema: {
+                    model: {
+                        id: "Id",
+                        fields: {
+                            Location: { type: "string", validation: { required: true } },
+                            WeatherStation: { type: "string", validation: { required: true } },
+                            Description: { type: "string" }
+                        }
+                    }
+                }
+            },
+            columns: [
+                { field: "Location", title: "Location", width: "150px" },
+                { field: "WeatherStation", title: "Weather Station", width: "150px" },
+                { field: "Description", title: "Description", width: "250px" },
+                {
+                    command: [
+                        { name: "edit", text: "Edit" },
+                        { name: "destroy", text: "Delete" }
+                    ],
+                    title: "Actions",
+                    width: "200px"
+                }
+            ],
+            editable: "inline",
+            toolbar: ["create"],
+            pageable: true
+        });
+    }
+
+    function saveAllMasterData() {
+        showNotification("Master data saved successfully", "success");
+        $("#masterDPRModal").modal('hide');
+    }
+
+    // Add row functions
+    function addMasterProductionRow() {
+        var grid = $("#masterProductionGrid").data("kendoGrid");
+        grid.addRow();
+    }
+
+    function addMasterMiningRow() {
+        var grid = $("#masterMiningGrid").data("kendoGrid");
+        grid.addRow();
+    }
+
+    function addMasterTransportRow() {
+        var grid = $("#masterTransportGrid").data("kendoGrid");
+        grid.addRow();
+    }
+
+    function addMasterStockpileRow() {
+        var grid = $("#masterStockpileGrid").data("kendoGrid");
+        grid.addRow();
+    }
+
+    function addMasterWeatherRow() {
+        var grid = $("#masterGlobalWeatherGrid").data("kendoGrid");
+        grid.addRow();
+    }
+</script>

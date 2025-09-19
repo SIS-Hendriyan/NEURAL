@@ -1,0 +1,87 @@
+﻿@using System.Text.Json
+@model List<NEURAL.Models.Entities.HOLIDAY_T>
+<style>
+ 
+    #btnCloseHoliday.k-button-solid-primary {
+        background-color: #0d6efd !important; 
+        border-color: #0d6efd !important;
+        color: #fff !important;
+    }
+
+        #btnCloseHoliday.k-button-solid-primary:hover {
+            background-color: #0b5ed7 !important;
+            border-color: #0b5ed7 !important;
+        }
+
+        #btnCloseHoliday.k-button-solid-primary:focus {
+            box-shadow: 0 0 0 .2rem rgba(13,110,253,.25) !important;
+            outline: 0;
+        }
+</style>
+<h4 style="margin-bottom:12px;">
+    @ViewBag.Jobsite - @ViewBag.MbrVersion - @ViewBag.HolidayYear
+</h4>
+
+<div id="holidayDetailGrid"></div>
+
+<div style="text-align:right; margin-top:16px;">
+    <button class="k-button k-button-solid-primary btn-blue btn-round-sm btn-h-36" onclick="closeDialog()">Close</button>
+</div>
+
+<script>
+    (function () {
+
+        const rawData = @Html.Raw(JsonSerializer.Serialize(Model));
+
+        const gridData = (rawData || []).map((x, idx) => ({
+            RowNo: idx + 1,
+            Date: x.DATE,           
+            Keterangan: x.KETERANGAN,
+            Durasi: x.DURASI         
+        }));
+
+        const $gridEl = $("#holidayDetailGrid");
+        const oldGrid = $gridEl.data("kendoGrid");
+        if (oldGrid) {
+            oldGrid.destroy();
+            $gridEl.empty();
+        }
+
+        $gridEl.kendoGrid({
+            dataSource: {
+                data: gridData,
+                schema: {
+                    model: {
+                        fields: {
+                            RowNo: { type: "number" },
+                            Date: { type: "date" },
+                            Keterangan: { type: "string" },
+                            Durasi: { type: "number" }
+                        }
+                    }
+                },
+                pageSize: 10
+            },
+            height: 400,
+            sortable: true,
+            filterable: false,
+            resizable: true,
+            pageable: {
+                refresh: false,
+                pageSizes: [10, 20, 50],
+                buttonCount: 5
+            },
+            columns: [
+                { field: "RowNo", title: "#", width: 60, attributes: { style: "text-align:center" }, headerAttributes: { style: "text-align:center" } },
+                { field: "Date",  title: "Date", width: 160, format: "{0:dd MMM yyyy}" },
+                { field: "Keterangan", title: "Keterangan" },
+                { field: "Durasi", title: "Durasi (Hari)", width: 140, format: "{0:n2}", attributes: { style: "text-align:right" }, headerAttributes: { style: "text-align:right" } }
+            ]
+        });
+    })();
+
+    function closeDialog() {
+        const win = $("#holidayDetailWindow").data("kendoWindow");
+        if (win) win.close();
+    }
+</script>

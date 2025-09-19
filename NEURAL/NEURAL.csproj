@@ -1,0 +1,156 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Views\Application\**" />
+    <Compile Remove="Views\ChangePassword\**" />
+    <Compile Remove="Views\Division\**" />
+    <Compile Remove="Views\FlipBook\**" />
+    <Compile Remove="Views\Group\**" />
+    <Compile Remove="Views\Jobsite\**" />
+    <Compile Remove="Views\Login\**" />
+    <Compile Remove="Views\MasterApplicationDetails\**" />
+    <Compile Remove="Views\MasterApplication\**" />
+    <Compile Remove="Views\MenuRestriction\**" />
+    <Compile Remove="Views\NewFolder1\**" />
+    <Compile Remove="Views\Search\**" />
+    <Compile Remove="Views\User\**" />
+    <Content Remove="Views\Application\**" />
+    <Content Remove="Views\ChangePassword\**" />
+    <Content Remove="Views\Division\**" />
+    <Content Remove="Views\FlipBook\**" />
+    <Content Remove="Views\Group\**" />
+    <Content Remove="Views\Jobsite\**" />
+    <Content Remove="Views\Login\**" />
+    <Content Remove="Views\MasterApplicationDetails\**" />
+    <Content Remove="Views\MasterApplication\**" />
+    <Content Remove="Views\MenuRestriction\**" />
+    <Content Remove="Views\NewFolder1\**" />
+    <Content Remove="Views\Search\**" />
+    <Content Remove="Views\User\**" />
+    <EmbeddedResource Remove="Views\Application\**" />
+    <EmbeddedResource Remove="Views\ChangePassword\**" />
+    <EmbeddedResource Remove="Views\Division\**" />
+    <EmbeddedResource Remove="Views\FlipBook\**" />
+    <EmbeddedResource Remove="Views\Group\**" />
+    <EmbeddedResource Remove="Views\Jobsite\**" />
+    <EmbeddedResource Remove="Views\Login\**" />
+    <EmbeddedResource Remove="Views\MasterApplicationDetails\**" />
+    <EmbeddedResource Remove="Views\MasterApplication\**" />
+    <EmbeddedResource Remove="Views\MenuRestriction\**" />
+    <EmbeddedResource Remove="Views\NewFolder1\**" />
+    <EmbeddedResource Remove="Views\Search\**" />
+    <EmbeddedResource Remove="Views\User\**" />
+    <None Remove="Views\Application\**" />
+    <None Remove="Views\ChangePassword\**" />
+    <None Remove="Views\Division\**" />
+    <None Remove="Views\FlipBook\**" />
+    <None Remove="Views\Group\**" />
+    <None Remove="Views\Jobsite\**" />
+    <None Remove="Views\Login\**" />
+    <None Remove="Views\MasterApplicationDetails\**" />
+    <None Remove="Views\MasterApplication\**" />
+    <None Remove="Views\MenuRestriction\**" />
+    <None Remove="Views\NewFolder1\**" />
+    <None Remove="Views\Search\**" />
+    <None Remove="Views\User\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Controllers\ApplicationController.cs" />
+    <Compile Remove="Controllers\ChangePasswordController.cs" />
+    <Compile Remove="Controllers\DivisionController.cs" />
+    <Compile Remove="Controllers\FlipBookController.cs" />
+    <Compile Remove="Controllers\GroupController.cs" />
+    <Compile Remove="Controllers\JobsiteController.cs" />
+    <Compile Remove="Controllers\LoginController.cs" />
+    <Compile Remove="Controllers\MasterApplicationController.cs" />
+    <Compile Remove="Controllers\MasterApplicationDetailsController.cs" />
+    <Compile Remove="Controllers\MenuRestrictionController.cs" />
+    <Compile Remove="Controllers\SearchController.cs" />
+    <Compile Remove="Controllers\UserController.cs" />
+    <Compile Remove="Models\GET_PROPERTIES_USER_T.cs" />
+    <Compile Remove="Models\GROUP_T.cs" />
+    <Compile Remove="Models\JOBSITE_T.cs" />
+    <Compile Remove="Models\LoginModel.cs" />
+    <Compile Remove="Models\LOG_ACCESS_APPS_T.cs" />
+    <Compile Remove="Models\MENU_RESTRICTION_T.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\css\join-survey.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\js\site.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.js.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.min.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.min.js.map" />
+    <None Include="wwwroot\lib\bootstrap\LICENSE" />
+    <None Include="wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.js" />
+    <None Include="wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.min.js" />
+    <None Include="wwwroot\lib\jquery-validation\dist\additional-methods.js" />
+    <None Include="wwwroot\lib\jquery-validation\dist\additional-methods.min.js" />
+    <None Include="wwwroot\lib\jquery-validation\dist\jquery.validate.js" />
+    <None Include="wwwroot\lib\jquery-validation\dist\jquery.validate.min.js" />
+    <None Include="wwwroot\lib\jquery-validation\LICENSE.md" />
+    <None Include="wwwroot\lib\jquery\dist\jquery.js" />
+    <None Include="wwwroot\lib\jquery\dist\jquery.min.js" />
+    <None Include="wwwroot\lib\jquery\dist\jquery.min.map" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspose.Slides.NET" Version="24.10.0" />
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
+    <PackageReference Include="FastMember" Version="1.5.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="8.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.8">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.PowerBI.Api" Version="4.22.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Novell.Directory.Ldap.NETStandard" Version="3.6.0" />
+    <PackageReference Include="NPOI" Version="2.7.1" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="8.0.1" />
+    <PackageReference Include="System.ServiceModel.Duplex" Version="6.0.*" />
+    <PackageReference Include="System.ServiceModel.Federation" Version="6.0.*" />
+    <PackageReference Include="System.ServiceModel.Http" Version="6.0.*" />
+    <PackageReference Include="System.ServiceModel.NetTcp" Version="6.0.*" />
+    <PackageReference Include="System.ServiceModel.Security" Version="6.0.*" />
+  </ItemGroup>
+
+</Project>
